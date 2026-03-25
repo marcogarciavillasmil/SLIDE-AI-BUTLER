@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SLIDE HUD PRIME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: transparent; display: flex; align-items: center; justify-content: center; overflow: hidden; user-select: none; font-family: 'Rajdhani', sans-serif; }
+        
+        #preloader { position: fixed; width: 96%; height: 96%; background: rgba(5, 5, 8, 1); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 15px; clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%); transition: opacity 0.5s ease-out; overflow: hidden; }
+        
+        /* 🔥 LA SOBRECARGA EN LOS 1.7 SEGUNDOS FINALES 🔥 */
+        .graph-container { 
+            position: relative; width: 300px; height: 300px; z-index: 1; 
+            animation: network-overload 1.7s 4.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+        }
+
+        /* 🔥 NODOS: DESTELLO BLANCO AL APARECER 🔥 */
+        .neuron { 
+            position: absolute; width: 12px; height: 12px; background: #ffcc00; border-radius: 50%; 
+            transform: translate(-50%, -50%) scale(0); opacity: 0; z-index: 2; 
+            animation: show-node 0.15s ease-out var(--delay) forwards, explode-node 1.5s 6.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; 
+        }
+        .n-c { 
+            left: 150px; top: 150px; width: 20px; height: 20px; 
+            animation: show-node-center 0.2s ease-out 0s forwards, explode-node-center 1.5s 6.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; 
+        }
+
+        /* 🔥 LÍNEAS: DISPARO LÁSER MÁS FLUIDO Y BRILLANTE 🔥 */
+        .connection { 
+            position: absolute; background: linear-gradient(90deg, #ffffff, #ffcc00); height: 2px; 
+            transform-origin: 0 50%; opacity: 0; z-index: 1; transform: rotate(var(--rot)) scaleX(0); 
+            animation: draw-line 0.1s ease-out var(--delay) forwards, explode-line 1.5s 6.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; 
+        }
+
+        /* NUEVAS ANIMACIONES DE APARICIÓN (MÁS ESTILO) */
+        @keyframes show-node { 
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; background: #ffffff; box-shadow: 0 0 20px #ffffff; } 
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; background: #ffffff; box-shadow: 0 0 25px #ffffff; } 
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; background: #ffcc00; box-shadow: 0 0 10px #ffcc00; } 
+        }
+        @keyframes show-node-center { 
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; background: #ffffff; box-shadow: 0 0 30px #ffffff; } 
+            50% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; background: #ffffff; box-shadow: 0 0 40px #ffffff; } 
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; background: #ffcc00; box-shadow: 0 0 15px #ffcc00; } 
+        }
+        @keyframes draw-line { 
+            0% { transform: rotate(var(--rot)) scaleX(0); opacity: 0; filter: brightness(2); } 
+            50% { opacity: 1; filter: brightness(1.5); } 
+            100% { transform: rotate(var(--rot)) scaleX(1); opacity: 0.9; background: linear-gradient(90deg, #ffcc00, #ff0033); filter: brightness(1); } 
+        }
+
+        /* ANIMACIÓN DE SOBRECARGA PARA RELLENAR EL TIEMPO MUERTO */
+        @keyframes network-overload {
+            0% { transform: scale(1); filter: drop-shadow(0 0 0px #ff0033); }
+            20% { transform: scale(1.02) translate(1px, -1px); filter: drop-shadow(0 0 15px #ff0033); }
+            40% { transform: scale(0.98) translate(-1px, 1px); filter: drop-shadow(0 0 25px #ff0033) hue-rotate(-10deg); }
+            60% { transform: scale(1.03) translate(2px, 0); filter: drop-shadow(0 0 40px #ff0033) hue-rotate(-20deg); }
+            80% { transform: scale(0.97) translate(-2px, 2px); filter: drop-shadow(0 0 50px #ff0033) hue-rotate(-30deg) brightness(1.2); }
+            100% { transform: scale(0.9) translate(0, 0); filter: drop-shadow(0 0 80px #ff0033) hue-rotate(-45deg) brightness(1.5); }
+        }
+
+        /* EXPLOSIONES */
+        @keyframes explode-node { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; box-shadow: 0 0 10px #ffcc00; } 20% { transform: translate(-50%, -50%) scale(2); opacity: 1; box-shadow: 0 0 30px #ffcc00, 0 0 50px #ff0033; } 80% { transform: translate(-50%, -50%) scale(100); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(100); opacity: 0; } }
+        @keyframes explode-node-center { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; box-shadow: 0 0 15px #ffcc00; } 20% { transform: translate(-50%, -50%) scale(2.5); opacity: 1; box-shadow: 0 0 40px #ff0033; background: #ffcc00; } 80% { transform: translate(-50%, -50%) scale(100); opacity: 1; background: #ffcc00;} 100% { transform: translate(-50%, -50%) scale(100); opacity: 0; } }
+        @keyframes explode-line { 0% { transform: rotate(var(--rot)) scaleX(1); opacity: 0.9; height: 2px; } 20% { transform: rotate(var(--rot)) scaleX(1.5); opacity: 1; height: 6px; } 80% { transform: rotate(var(--rot)) scaleX(10); opacity: 0.8; height: 15px; } 100% { transform: rotate(var(--rot)) scaleX(10); opacity: 0; } }
+
+        .loading-text { position: absolute; bottom: 15%; font-family: 'Orbitron', sans-serif; color: #ffcc00; letter-spacing: 6px; font-size: 18px; text-shadow: 0 0 15px #ff9900; animation: fade-text 8s forwards; z-index: 10; }
+        .slide-logo-reveal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Orbitron', sans-serif; font-size: 110px; font-weight: 900; color: #ffcc00; text-shadow: 0 0 10px #ffcc00; z-index: 20; opacity: 0; pointer-events: none; animation: reveal-logo-glitch 8s forwards; letter-spacing: 10px; }
+        .slide-logo-reveal::before, .slide-logo-reveal::after { content: 'SLIDE'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8; }
+        .slide-logo-reveal::before { color: #ff0033; text-shadow: 0 0 15px #ff0033; z-index: -1; animation: glitch-offset-1 8s forwards; }
+        .slide-logo-reveal::after { color: #ffffff; text-shadow: 0 0 5px #ffffff; z-index: -2; animation: glitch-offset-2 8s forwards; }
+
+        @keyframes fade-text { 0%, 80% { opacity: 1; transform: translateY(0); } 90% { opacity: 0; transform: translateY(20px); } 100% { opacity: 0; } }
+        @keyframes reveal-logo-glitch { 0%, 84% { opacity: 0; transform: translate(-50%, -50%) scale(1); } 85%, 88%, 91% { opacity: 1; transform: translate(-51%, -49%) scale(1.02); filter: blur(2px); } 86%, 89%, 92% { opacity: 0.8; transform: translate(-49%, -51%) scale(0.98); filter: blur(0px); } 93%, 98% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0px); letter-spacing: 10px; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); filter: blur(10px); letter-spacing: 30px; } }
+        @keyframes glitch-offset-1 { 0%, 84% { opacity: 0; } 85%, 93% { opacity: 0.8; transform: translate(-3px, 2px); } 94%, 100% { opacity: 0; transform: translate(0, 0); } }
+        @keyframes glitch-offset-2 { 0%, 84% { opacity: 0; } 85%, 93% { opacity: 0.6; transform: translate(3px, -2px); } 94%, 100% { opacity: 0; transform: translate(0, 0); } }
+
+        /* HUD PANEL */
+        .hud-panel { width: 96%; height: 96%; position: relative; overflow: hidden; background: rgba(5, 5, 8, 0.95); background-image: linear-gradient(rgba(255, 204, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 204, 0, 0.05) 1px, transparent 1px); background-size: 25px 25px; border: 2px solid rgba(255, 204, 0, 0.5); border-radius: 15px; box-shadow: 0 0 60px rgba(0,0,0,0.9), inset 0 0 50px rgba(255, 204, 0, 0.15); clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%); }
+        .scan-line { position: absolute; width: 100%; height: 3px; background: linear-gradient(to right, transparent, rgba(255, 153, 0, 0.8), transparent); box-shadow: 0 0 20px rgba(255, 153, 0, 0.6); opacity: 0.5; z-index: 5; animation: scan 5s linear infinite; pointer-events: none; }
+        #neural-network { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .top-bar { position: absolute; top: 25px; left: 0; width: 100%; z-index: 10; display: flex; justify-content: space-between; padding: 0 50px; box-sizing: border-box; color: #ffcc00; font-family: 'Orbitron', sans-serif; pointer-events: none; }
+        .sys-info { font-size: 15px; letter-spacing: 3px; text-shadow: 0 0 10px #ff9900; } .sys-info span { color: #ff0033; text-shadow: 0 0 12px #ff0033; font-weight: bold; }
+        .clock-container { text-align: right; } .time { font-size: 26px; font-weight: 700; text-shadow: 0 0 12px #ff9900; letter-spacing: 2px; color: #ffcc00; } .date { font-size: 13px; color: #cc9900; letter-spacing: 1px; }
+        
+        .center-layer { position: absolute; top: 10%; left: 0; width: 100%; height: 65%; z-index: 10; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+        .reactor-container { position: relative; width: 350px; height: 350px; cursor: pointer; transition: all 0.3s ease; pointer-events: auto; margin-top: -20px; display: flex; align-items: center; justify-content: center; }
+        #reactor-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        .core { position: absolute; width: 45%; height: 45%; z-index: 3; background: radial-gradient(circle, rgba(255, 204, 0, 0.2) 0%, transparent 65%); border: 1px solid rgba(255, 204, 0, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px rgba(255, 204, 0, 0.7), 0 0 25px rgba(255, 204, 0, 0.5); animation: pulse 4s infinite; }
+        .core-text { font-family: 'Orbitron', sans-serif; color: #ffffff; font-size: 32px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 20px #ffcc00, 0 0 30px #ff9900; }
+        
+        .terminal-container { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 10; pointer-events: none;}
+        .terminal { width: 88%; background: rgba(5, 5, 8, 0.95); border: 1px solid #ff9900; border-top: 6px solid #ff9900; border-radius: 5px; padding: 18px; box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 0 20px rgba(255, 204, 0, 0.2); pointer-events: auto; }
+        #chat-log { height: 110px; overflow-y: auto; color: #ffdd66; font-size: 15px; margin-bottom: 12px; text-shadow: 0 0 3px rgba(255, 221, 102, 0.3); line-height: 1.5; }
+        .input-container { display: flex; gap: 10px; position: relative; }
+        .input-container::before { content: ">"; position: absolute; left: 12px; top: 14px; color: #ffcc00; font-weight: bold; font-size: 16px;}
+        #user-input { flex-grow: 1; background: rgba(255, 204, 0, 0.05); border: 1px solid rgba(255, 204, 0, 0.4); color: #fff; padding: 14px 14px 14px 35px; border-radius: 3px; outline: none; font-family: 'Consolas', monospace; font-size: 15px; transition: all 0.3s; }
+        #user-input:focus { background: rgba(255, 204, 0, 0.15); border-color: #ffcc00; box-shadow: 0 0 20px rgba(255, 204, 0, 0.6); }
+        
+        .active .hud-panel { border-color: #ff0033; box-shadow: 0 0 60px rgba(0,0,0,0.9), inset 0 0 50px rgba(255, 0, 51, 0.15); }
+        .active .scan-line { background: linear-gradient(to right, transparent, rgba(255, 0, 51, 1), transparent); box-shadow: 0 0 20px rgba(255, 0, 51, 0.8); }
+        .active .sys-info span { color: #ff0033; text-shadow: 0 0 12px #ff0033; }
+        .active .core { background: radial-gradient(circle, rgba(255, 0, 51, 0.3) 0%, transparent 65%); border-color: #ff0033; box-shadow: inset 0 0 50px #ff0033, 0 0 30px #ff0033; animation: pulse 0.5s infinite; }
+        .active .core-text { text-shadow: 0 0 20px #fff, 0 0 30px #ff0033, 0 0 40px #cc0000; color: #fff; }
+        .active .terminal { border-top-color: #ff0033; box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(255, 0, 51, 0.3); }
+        .active .input-container::before { color: #ff0033; }
+        .active #user-input { border-color: #ff0033; color: #ff0033; }
+        
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 5px; }
+        .active ::-webkit-scrollbar-thumb { background: #ff0033; }
+    </style>
+</head>
+<body>
+
+    <div id="preloader">
+        <div class="graph-container">
+            <div class="neuron n-c"></div>
+
+            <div class="neuron" style="left: 115px; top: 115px; --delay: 0.15s;"></div>
+            <div class="neuron" style="left: 150px; top: 100px; --delay: 0.3s;"></div>
+            <div class="neuron" style="left: 185px; top: 115px; --delay: 0.45s;"></div>
+            <div class="neuron" style="left: 200px; top: 150px; --delay: 0.6s;"></div>
+            <div class="neuron" style="left: 185px; top: 185px; --delay: 0.75s;"></div>
+            <div class="neuron" style="left: 150px; top: 200px; --delay: 0.9s;"></div>
+            <div class="neuron" style="left: 115px; top: 185px; --delay: 1.05s;"></div>
+            <div class="neuron" style="left: 100px; top: 150px; --delay: 1.2s;"></div>
+
+            <div class="neuron" style="left: 50px; top: 50px; --delay: 2.55s;"></div>
+            <div class="neuron" style="left: 150px; top: 10px; --delay: 2.7s;"></div>
+            <div class="neuron" style="left: 250px; top: 50px; --delay: 2.85s;"></div>
+            <div class="neuron" style="left: 290px; top: 150px; --delay: 3.0s;"></div>
+            <div class="neuron" style="left: 250px; top: 250px; --delay: 3.15s;"></div>
+            <div class="neuron" style="left: 150px; top: 290px; --delay: 3.3s;"></div>
+            <div class="neuron" style="left: 50px; top: 250px; --delay: 3.45s;"></div>
+            <div class="neuron" style="left: 10px; top: 150px; --delay: 3.6s;"></div>
+
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: -135deg; --delay: 0.15s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: -90deg; --delay: 0.3s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: -45deg; --delay: 0.45s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: 0deg; --delay: 0.6s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: 45deg; --delay: 0.75s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: 90deg; --delay: 0.9s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: 135deg; --delay: 1.05s;"></div>
+            <div class="connection" style="left: 150px; top: 150px; width: 50px; --rot: 180deg; --delay: 1.2s;"></div>
+
+            <div class="connection" style="left: 115px; top: 115px; width: 38px; --rot: -23.2deg; --delay: 1.35s;"></div>
+            <div class="connection" style="left: 150px; top: 100px; width: 38px; --rot: 23.2deg; --delay: 1.5s;"></div>
+            <div class="connection" style="left: 185px; top: 115px; width: 38px; --rot: 66.8deg; --delay: 1.65s;"></div>
+            <div class="connection" style="left: 200px; top: 150px; width: 38px; --rot: 113.2deg; --delay: 1.8s;"></div>
+            <div class="connection" style="left: 185px; top: 185px; width: 38px; --rot: 156.8deg; --delay: 1.95s;"></div>
+            <div class="connection" style="left: 150px; top: 200px; width: 38px; --rot: -156.8deg; --delay: 2.1s;"></div>
+            <div class="connection" style="left: 115px; top: 185px; width: 38px; --rot: -113.2deg; --delay: 2.25s;"></div>
+            <div class="connection" style="left: 100px; top: 150px; width: 38px; --rot: -66.8deg; --delay: 2.4s;"></div>
+
+            <div class="connection" style="left: 115px; top: 115px; width: 92px; --rot: -135deg; --delay: 2.55s;"></div>
+            <div class="connection" style="left: 150px; top: 100px; width: 90px; --rot: -90deg; --delay: 2.7s;"></div>
+            <div class="connection" style="left: 185px; top: 115px; width: 92px; --rot: -45deg; --delay: 2.85s;"></div>
+            <div class="connection" style="left: 200px; top: 150px; width: 90px; --rot: 0deg; --delay: 3.0s;"></div>
+            <div class="connection" style="left: 185px; top: 185px; width: 92px; --rot: 45deg; --delay: 3.15s;"></div>
+            <div class="connection" style="left: 150px; top: 200px; width: 90px; --rot: 90deg; --delay: 3.3s;"></div>
+            <div class="connection" style="left: 115px; top: 185px; width: 92px; --rot: 135deg; --delay: 3.45s;"></div>
+            <div class="connection" style="left: 100px; top: 150px; width: 90px; --rot: 180deg; --delay: 3.6s;"></div>
+
+            <div class="connection" style="left: 50px; top: 50px; width: 107.7px; --rot: -21.8deg; --delay: 3.75s;"></div>
+            <div class="connection" style="left: 150px; top: 10px; width: 107.7px; --rot: 21.8deg; --delay: 3.9s;"></div>
+            <div class="connection" style="left: 250px; top: 50px; width: 107.7px; --rot: 68.2deg; --delay: 4.05s;"></div>
+            <div class="connection" style="left: 290px; top: 150px; width: 107.7px; --rot: 111.8deg; --delay: 4.2s;"></div>
+            <div class="connection" style="left: 250px; top: 250px; width: 107.7px; --rot: 158.2deg; --delay: 4.35s;"></div>
+            <div class="connection" style="left: 150px; top: 290px; width: 107.7px; --rot: -158.2deg; --delay: 4.5s;"></div>
+            <div class="connection" style="left: 50px; top: 250px; width: 107.7px; --rot: -111.8deg; --delay: 4.65s;"></div>
+            <div class="connection" style="left: 10px; top: 150px; width: 107.7px; --rot: -68.2deg; --delay: 4.8s;"></div>
+        </div>
+        <div class="loading-text">INICIANDO SISTEMA...</div>
+        <div class="slide-logo-reveal">SLIDE</div>
+    </div>
+
+    <div class="hud-panel">
+        <canvas id="neural-network"></canvas>
+        <div class="scan-line"></div>
+        <div class="top-bar">
+            <div class="sys-info">PROYECTO: <span>SLIDE</span><br>MODO: OPERATIVO</div>
+            <div class="clock-container"><div class="time" id="clock">00:00:00</div><div class="date" id="date">CARGANDO...</div></div>
+        </div>
+        <div class="center-layer">
+            <div class="reactor-container" onclick="clickReactor()">
+                <canvas id="reactor-canvas" width="350" height="350"></canvas>
+                <div class="core"><div class="core-text">SLIDE</div></div>
+            </div>
+        </div>
+        <div class="terminal-container">
+            <div class="terminal">
+                <div id="chat-log"></div>
+                <div class="input-container"><input type="text" id="user-input" placeholder="Esperando comandos..." onkeypress="handleEnter(event)" /></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const preloader = document.getElementById('preloader');
+                preloader.style.opacity = '0';
+                
+                setTimeout(() => {
+                    preloader.remove();
+                    initCanvas();
+                    drawNetwork();
+                    drawFluidRing();
+                }, 500);
+            }, 8000); 
+        });
+
+        function updateClock() { const now = new Date(); document.getElementById('clock').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`; document.getElementById('date').textContent = now.toLocaleDateString('es-ES', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase(); }
+        setInterval(updateClock, 1000); updateClock();
+
+        const rCanvas = document.getElementById('reactor-canvas'); const rCtx = rCanvas.getContext('2d'); let rTime = 0;
+        let animationIdRing;
+        function drawFluidRing() { rCtx.clearRect(0, 0, rCanvas.width, rCanvas.height); let cx = rCanvas.width / 2; let cy = rCanvas.height / 2; let isActive = document.body.classList.contains('active'); let color = isActive ? '255, 0, 51' : '255, 204, 0'; for(let j = 0; j < 2; j++) { for(let i = 0; i < 360; i += 2) { let angle = i * Math.PI / 180; let twist = Math.sin(angle * 4 + rTime * (j === 0 ? 2 : -2)) * 15; let r = 130 + twist; let x = cx + Math.cos(angle + rTime * 0.5) * r; let y = cy + Math.sin(angle + rTime * 0.5) * r; rCtx.fillStyle = `rgba(${color}, ${0.5 + (twist / 30)})`; rCtx.shadowBlur = 10; rCtx.shadowColor = `rgb(${color})`; rCtx.beginPath(); rCtx.arc(x, y, 2.5, 0, Math.PI*2); rCtx.fill(); } } rTime += isActive ? 0.08 : 0.02; animationIdRing = requestAnimationFrame(drawFluidRing); }
+
+        const canvas = document.getElementById('neural-network'); const ctx = canvas.getContext('2d'); let particles = []; let dataBits = []; let animationIdNet;
+        function initCanvas() { canvas.width = document.querySelector('.hud-panel').clientWidth; canvas.height = document.querySelector('.hud-panel').clientHeight; particles = []; dataBits = []; for(let i=0; i<85; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5 }); for(let i=0; i<30; i++) dataBits.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, val: Math.random() > 0.5 ? '0' : '1', vy: (Math.random() * 0.5) + 0.2, opacity: Math.random() * 0.5 }); }
+        function drawNetwork() { ctx.clearRect(0, 0, canvas.width, canvas.height); let isActive = document.body.classList.contains('active'); let colorBase = isActive ? '255, 0, 51' : '255, 204, 0'; ctx.font = "12px Orbitron"; dataBits.forEach(bit => { ctx.fillStyle = `rgba(${colorBase}, ${bit.opacity})`; ctx.fillText(bit.val, bit.x, bit.y); bit.y += bit.vy; if(bit.y > canvas.height) { bit.y = -10; bit.x = Math.random() * canvas.width; bit.val = Math.random() > 0.5 ? '0' : '1'; } }); ctx.fillStyle = `rgba(${colorBase}, 0.9)`; particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; if(p.x < 0 || p.x > canvas.width) p.vx *= -1; if(p.y < 0 || p.y > canvas.height) p.vy *= -1; ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, Math.PI*2); ctx.fill(); for(let j=i+1; j<particles.length; j++) { let p2 = particles[j]; let dist = Math.hypot(p.x-p2.x, p.y-p2.y); if(dist < 130) { ctx.strokeStyle = `rgba(${colorBase}, ${0.8 - dist/130})`; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); } } }); animationIdNet = requestAnimationFrame(drawNetwork); }
+        
+        window.addEventListener('resize', () => { if(!document.getElementById('preloader')){ initCanvas(); } });
+
+        var backend; new QWebChannel(qt.webChannelTransport, function (channel) { backend = channel.objects.backend; });
+        const chatLog = document.getElementById('chat-log'); const userInput = document.getElementById('user-input');
+        
+        function handleEnter(event) { if (event.key === 'Enter' && userInput.value.trim() !== '') { const text = userInput.value.trim(); appendLog(`OPR >> ${text}`, '#ffffff'); userInput.value = ''; if (backend) backend.recibir_comando(text); } }
+        function clickReactor() { if (backend) backend.activar_slide(); }
+        function appendLog(mensaje, color="#ffcc00") { const line = document.createElement('div'); line.style.color = color; line.textContent = mensaje; chatLog.appendChild(line); chatLog.scrollTop = chatLog.scrollHeight; }
+        function setEstado(estado) { if (estado === 'activo') document.body.classList.add('active'); else document.body.classList.remove('active'); }
+        function toggleInterfaz(mostrar) {
+            const hud = document.querySelector('.hud-panel');
+            
+            if (mostrar === true) {
+                hud.style.display = 'block';
+            } else if (mostrar === false) {
+                hud.style.display = 'none';}}
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[2026-03-01/ 11:59:33.901:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 11:59:33.903:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 11:59:33.905:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2
+[2026-03-01/ 12:03:53.563:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 12:03:53.567:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 12:03:53.569:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2
+[2026-03-01/ 12:09:35.364:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 12:09:35.372:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 12:09:35.373:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2
+[2026-03-01/ 12:09:43.677:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 12:09:43.679:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 12:09:43.680:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2
+[2026-03-01/ 12:10:16.005:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 12:10:16.008:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 12:10:16.009:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2
+[2026-03-01/ 12:12:18.357:INFO:browser_app_win.cc(322)] filePath to delete: NVIDIA App\UpdateFramework\status\nvapp\nvAppUpdate.json
+[2026-03-01/ 12:12:18.359:INFO:cefmain_win.cc(391)] Invoking CefInitialize
+[2026-03-01/ 12:12:18.360:WARNING:browser_app_win.cc(548)] Unable to read protocol whitelist from registry, status 2

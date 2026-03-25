@@ -1,0 +1,30 @@
+[
+    {
+        "accion": "WHATSAPP",
+        "target": "Brainer",
+        "info": "Hola",
+        "hora": "10/04 15:02\nA sus \u00f3rdenes se\u00f1or, buscando [Mensajer\u00eda para programar tarea].",
+        "estado": "pendiente"
+    },
+    {
+        "accion": "WHATSAPP",
+        "target": "Breiner",
+        "info": "Hola Breiner se escribe B-R-E-I-N-E-R",
+        "hora": "10/04 14:00\n\n\u00a1Gracias, se\u00f1or! \u00bfHay algo m\u00e1s en lo que pueda ayudarle hoy?",
+        "estado": "pendiente"
+    },
+    {
+        "accion": "WHATSAPP",
+        "target": "Marco",
+        "info": "Hola querido Marco, \u00bfen qu\u00e9 puedo ayudarte hoy?",
+        "hora": "19/03 18:59",
+        "estado": "pendiente"
+    },
+    {
+        "accion": "WHATSAPP",
+        "target": "Padre",
+        "info": "Perd\u00f3name padre",
+        "hora": "20/03 14:15",
+        "estado": "pendiente"
+    }
+]
