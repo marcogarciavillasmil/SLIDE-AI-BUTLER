@@ -1,12 +1,12 @@
 import torch
 from collections import deque
 import numpy as np
-from Transcriptor import escuchador_de_usuario
+from Voz_Slide.Transcriptor import escuchador_de_usuario
 from faster_whisper import WhisperModel
 import pyaudio
-from Herramientas_del_asistente import buscar_microfono
+from Voz_Slide.Herramientas_del_asistente import buscar_microfono
 import time
-from Herramientas_del_asistente import hablado_del_asistente
+from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 
 palabras = ["DESPIERTA","SLIDE","SLIGHT","OYE","ACTIVATE","PAPA ESTA EN CASA","TE NECESITO","PAPA ESTA EN CAZA"]
 

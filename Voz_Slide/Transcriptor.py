@@ -2,7 +2,7 @@ import whisper
 import os as os 
 import speech_recognition as sr
 import sys
-from Herramientas_del_asistente import buscar_microfono
+from Voz_Slide.Herramientas_del_asistente import buscar_microfono
 from faster_whisper import WhisperModel
 
 

@@ -3,7 +3,7 @@ import webbrowser
 import pyautogui
 import time
 import importlib
-import Auto_Programacion
+from Nucleo_Slide import Auto_Programacion
 import ast
 import threading
 import queue

@@ -1,8 +1,8 @@
 import ollama as ol
 from datetime import datetime
-from configuracion_del_agente import tools
-from configuracion_del_agente import tools_map
-from Herramientas_del_asistente import hablado_del_asistente
+from Nucleo_Slide.configuracion_del_agente import tools
+from Nucleo_Slide.configuracion_del_agente import tools_map
+from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 import json
 from openai import OpenAI
 import ast
@@ -10,8 +10,8 @@ import threading
 import queue
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from Herramientas_del_asistente import hablado_del_asistente
-from Transcriptor import escuchador_de_usuario
+from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
+from Voz_Slide.Transcriptor import escuchador_de_usuario
 import time
 
 

@@ -2,7 +2,7 @@ import threading
 import time
 import json
 from datetime import datetime
-from Herramientas_del_asistente import hablado_del_asistente
+from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 from Funciones_Slide.Funciones_Variadas import Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar
 def monitor_de_tareas():
     while True:

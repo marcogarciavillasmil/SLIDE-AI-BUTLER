@@ -1,14 +1,14 @@
-from Transcriptor import escuchador_de_usuario
-from Cerebro import proceso_de_ia 
-from Herramientas_del_asistente import hablado_del_asistente
+from Voz_Slide.Transcriptor import escuchador_de_usuario
+from Nucleo_Slide.Cerebro import proceso_de_ia
+from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 from Funciones_Slide.Tareas_Hilos_Comandos import iniciar_hilos
 from Funciones_Slide.Comandos_Asistente import Reconocimiento_Facial
-from VAD import Reconocimiento_de_habla
+from Voz_Slide.VAD import Reconocimiento_de_habla
 from Interfaz.Interfaz_En_Python import ejecutar_slide
 from Funciones_Slide.Comandos_Asistente import Abrir_Apps
 from Funciones_Slide.Funciones_Variadas import Enviar_mensaje_Whatsapp
 from Funciones_Slide.Comandos_Asistente import Abrir_Apps
-from Cerebro import iniciar_centinela, estado_aiden
+from Nucleo_Slide.Cerebro import iniciar_centinela, estado_aiden
 iniciar_hilos()
 
 
