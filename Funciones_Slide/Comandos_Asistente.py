@@ -8,11 +8,15 @@ import face_recognition_models
 import time 
 import urllib.parse
 import sys
-from Gestion_datos import guardar_en_json
+from Funciones_Slide.Gestion_datos import guardar_en_json
 import json
 
+
+
+
+
 captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-Cara =  cv2.imread(r"C:\Users\Usuario\Desktop\Python Proyecto\Imagenes\Marco.jpg")
+Cara =  cv2.imread(r"C:\Users\marco\SLIDE-AI-BUTLER\Imagenes\Marco.jpg")
 
 def abrir_camara(): 
  cv2.namedWindow("Camara_IA",cv2.WND_PROP_FULLSCREEN) 
@@ -77,7 +81,7 @@ def Reconocimiento_Facial():
 def Abrir_Apps(Aplicacion):
    
    
-   ubicacion = pyautogui.locateOnScreen(r"C:\Users\Usuario\Desktop\Python Proyecto\Guias_Python\Buscador_Guia.png", confidence=0.58)
+   ubicacion = pyautogui.locateOnScreen(r"C:\Users\marco\SLIDE-AI-BUTLER\Guias_Python\Buscador_Guia3.png", confidence=0.7)
 
    if ubicacion is not None:
       centrado = pyautogui.center(ubicacion)
@@ -96,7 +100,7 @@ def Abrir_Apps(Aplicacion):
    else:
       print("No se encontro la Aplicacion")
 
-def Abrir_Os(Aplicacion_os):
+def Abrir_WhattsApp(Aplicacion_os):
    os.startfile("whatsapp://")
 
 def Abrir_Videos_Youtube(Tipo_Video):
@@ -140,8 +144,6 @@ def limpiar_historial():
    
 
       
-
-
 
 
 

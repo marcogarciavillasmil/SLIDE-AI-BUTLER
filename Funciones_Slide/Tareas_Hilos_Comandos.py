@@ -3,11 +3,7 @@ import time
 import json
 from datetime import datetime
 from Herramientas_del_asistente import hablado_del_asistente
-from Comandos_Asistente import Programacion_de_Tareas
-from Funciones_Variadas import Enviar_mensaje_Whatsapp
-from Funciones_Variadas import llamada_whatsapp
-from Funciones_Variadas import colgar
-
+from Funciones_Slide.Funciones_Variadas import Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar
 def monitor_de_tareas():
     while True:
         with open("tareas.json","r") as f:

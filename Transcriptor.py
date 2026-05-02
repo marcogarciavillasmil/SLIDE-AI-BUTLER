@@ -1,4 +1,4 @@
-import whisper as whisper
+import whisper 
 import os as os 
 import speech_recognition as sr
 import sys

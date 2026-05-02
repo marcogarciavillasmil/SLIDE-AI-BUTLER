@@ -21,7 +21,7 @@ pipeline = pipe(lang_code='es')
 voz1= pipeline.load_voice('em_santa')
 voz2= pipeline.load_voice('af_bella')
 voz3= pipeline.load_voice('jf_alpha')
-voz_mezclada = (voz1*0.40)+(voz3*0.60)
+voz_mezclada = (voz1*0.45)+(voz3*0.55)
 
 
 

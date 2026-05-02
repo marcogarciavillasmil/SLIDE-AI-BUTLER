@@ -2,6 +2,11 @@ import os
 import webbrowser
 import pyautogui
 import time
+import importlib
+import Auto_Programacion
+import ast
+import threading
+import queue
 
 contactos = {
     "TITO": "573213547181",
@@ -16,7 +21,8 @@ contactos = {
     "TAILTWO": "573025596995",
     "ALONSO": "573223087219",
     "LUNA": "573133398274",
-    "CAMILO": "573229524240"
+    "CAMILO": "573229524240",
+    "Sofia":"573102014615"
 }
 
 def Enviar_mensaje_Whatsapp(nombre_contacto,mensaje):
@@ -60,7 +66,30 @@ def llamada_whatsapp(nombre_contacto):
         pyautogui.click()
         
         #time.sleep(4)
+def Auto_Modificacion (nombre_habilidad,codigo_python):
 
 
+    try:
+     compile(codigo_python, '<string>', 'exec')
+    except SyntaxError as e:
+       print(f"❌ La IA escribió código con mala sintaxis: {e}")
+        
+       return f"Error de sintaxis: {e}. Revisa las comillas, indentación o caracteres extraños. No guardé el código, corrígelo e inténtalo de nuevo."
+
+
+    try:
+     with open ("Auto_Programacion.py","a",encoding="utf-8") as auto_progra:
+
+
+        auto_progra.write(f"\n\n# --- Habilidad: {nombre_habilidad} ---\n")
+        auto_progra.write(codigo_python)
+        importlib.reload(Auto_Programacion)
+
+        print("Habilidad creada exitosamente")
+        return f"Señor, se programo correctamente la habilidad: {nombre_habilidad}"
+    except Exception as e:
+        
+        print(f"ERROR al cargar el nuevo código: {e}")
+        return f"El codigo tiene un error de logica: {e}, revisa la logica y genera una nueva version"
 
 

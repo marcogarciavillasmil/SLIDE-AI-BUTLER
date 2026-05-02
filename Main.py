@@ -1,121 +1,94 @@
-from Cerebro import proceso_de_ia
 from Transcriptor import escuchador_de_usuario
-import Transcriptor
-import Cerebro
+from Cerebro import proceso_de_ia 
 from Herramientas_del_asistente import hablado_del_asistente
-from Comandos_Asistente import Reconocimiento_Facial
-from Comandos_Asistente import Abrir_Apps
-from Comandos_Asistente import abrir_camara
-from Comandos_Asistente import Abrir_Videos_Youtube
-from Comandos_Asistente import Buscar_en_Google
-from Comandos_Asistente import Salir
-from Interfaz_En_Python import ejecutar_slide
-from Comandos_Asistente import Programacion_de_Tareas
-from Tareas_Hilos_Comandos import iniciar_hilos
-from Funciones_Variadas import Enviar_mensaje_Whatsapp
-from Funciones_Variadas import llamada_whatsapp
+from Funciones_Slide.Tareas_Hilos_Comandos import iniciar_hilos
+from Funciones_Slide.Comandos_Asistente import Reconocimiento_Facial
 from VAD import Reconocimiento_de_habla
-
+from Interfaz.Interfaz_En_Python import ejecutar_slide
+from Funciones_Slide.Comandos_Asistente import Abrir_Apps
+from Funciones_Slide.Funciones_Variadas import Enviar_mensaje_Whatsapp
+from Funciones_Slide.Comandos_Asistente import Abrir_Apps
+from Cerebro import iniciar_centinela, estado_aiden
 iniciar_hilos()
 
 
 
-Prohibidas = ["HABLAR","FOTO","CAMARA","YOUTUBE","RECONOCIMIENTO","INTERNET","SALIR","PROGRAMAR","MENSAJE","LLAMAR","ESCONDER","MOSTRAR"]
-
-
-
-
-
-def Etiquetas_Y_Acciones(texto,ventana):
-    Etiqueta, texto_puro = proceso_de_ia(texto)
-    texto_puro = texto_puro.strip()
-    Etiqueta_limpia = Etiqueta.replace("[","").replace("]","").strip()
-    ventana.enviar_texto_a_html(f"SLIDE >> {texto_puro}", "#d500f9")
-    print(Etiqueta_limpia)
-
-    hablado_del_asistente(texto_puro)
+def Procesar_Peticion(texto, ventana):
+  
+    texto = texto.strip()
     
+    texto = texto.lower()
 
-    if Etiqueta_limpia not in Prohibidas:
-     print("entro pyauto")
-     print(Etiqueta_limpia)
-     Abrir_Apps(Etiqueta_limpia)
-    elif Etiqueta_limpia == "FOTO" or Etiqueta_limpia == "CAMARA":
-     abrir_camara()
-    elif Etiqueta_limpia == "YOUTUBE":
-     
-     i,c,r = texto_puro.partition("[")
-     busqueda = c + r
-     busqueda_limpia = busqueda.replace("[","").replace("]","").strip()
-     Abrir_Videos_Youtube(busqueda_limpia)
+    if "abre " in texto:
+        
+        abrir_a_app = texto.split("abre ")[1].strip() 
+        
+        Abrir_Apps(abrir_a_app)
+        respuesta_slide = f"Hecho señor, aplicación {abrir_a_app} abierta."
 
-    elif Etiqueta_limpia == "RECONOCIMIENTO":
-     Reconocimiento_Facial()
-    elif Etiqueta_limpia == "INTERNET":
-      print("Entro internet")
-      i,c,r = texto_puro.partition("[")
-      busqueda = c + r
-      busqueda_limpia = busqueda.replace("[","").replace("]","").strip()
-      Buscar_en_Google(busqueda_limpia)
-    elif Etiqueta_limpia=="PROGRAMAR":
-      Programacion_de_Tareas(texto_puro)
-      hablado_del_asistente("Tarea programada con exito, señor")
-    elif Etiqueta_limpia == "MENSAJE":
-    
-      i,c,r = texto_puro.partition("[")
-      nombre = c+r
-      print(nombre)
-      nombre = nombre.replace("[","").replace("]","").strip()
-      mensaje = texto_puro.split("|")[1].strip()
-      print(nombre)
-      print(mensaje)
+    elif texto.startswith("escribele a "):
       
-      Enviar_mensaje_Whatsapp(nombre,mensaje)
+      partes = texto.replace("escribele a ","").split(" diciendo ")
+      
+      if len(partes) == 2: 
+        contacto = partes[0].strip()
+        mensaje = partes[1].strip()
+        
+        Enviar_mensaje_Whatsapp(contacto,mensaje)
 
-    elif Etiqueta_limpia=="LLAMAR":
-      print("entro a llamar")
-      i,c,r = texto_puro.partition("[")
-      nombre = c+r
-      nombre = nombre.replace("[","").replace("]","").strip()
-      llamada_whatsapp(nombre)
-    elif Etiqueta_limpia == "SALIR":
-      Salir()
+        respuesta_slide =f"Mensaje enviado a {contacto}, señor."
+      else:
+         respuesta_slide = "El mensaje no se pudo enviar"
+
+    elif "cambié de opinión" in texto or "ayúdame con el código" in texto or "ayudame" in texto:
+        if estado_aiden["hay_error"]:
+            ventana.enviar_texto_a_html("AIDEN >> Revisando la memoria de errores...", "#d500f9")
+            prompt = f"Hay un SyntaxError: '{estado_aiden['detalle_error']}' en la línea {estado_aiden['linea']}. Código: \n{estado_aiden['codigo']}\nDame una solución corta."
+            respuesta_slide = proceso_de_ia(prompt)
+        else:
+            respuesta_slide = "No tengo registros de errores de sintaxis en su código actualmente, señor."
+
+    
+    else:
+        
+     respuesta_slide = proceso_de_ia(texto) 
+    
+    ventana.enviar_texto_a_html(f"AIDEN >> {respuesta_slide}", "#d500f9")
+    print(f"AIDEN: {respuesta_slide}")
+    hablado_del_asistente(respuesta_slide)
+
 def Voz(ventana_slide):
-    ventana_slide.enviar_texto_a_html("SLIDE >> Escuchando...", "#00ffcc")
+    ventana_slide.enviar_texto_a_html("AIDEN >> Escuchando...", "#00ffcc")
     texto_escuchado = escuchador_de_usuario()
     ventana_slide.enviar_texto_a_html(f"USER (Voz) >> {texto_escuchado}", "#ffffff")
     
-
-    Etiquetas_Y_Acciones(texto_escuchado, ventana_slide)
+    Procesar_Peticion(texto_escuchado, ventana_slide)
 
 
 hablado_del_asistente("Iniciando sistema de seguridad...")
 print("Iniciando sistema de seguridad...")
 
-
-
-
-
-
 verificacion = Reconocimiento_Facial()
-
-
 Activado, Texto = Reconocimiento_de_habla()
+
 if verificacion == "Bienvenido Marco":
- hablado_del_asistente("Bienvenido marco")
- while Activado: 
- 
-  hablado_del_asistente("Hola señor, en que lo puedo ayudar hoy")
-  ejecutar_slide(funcion_texto=Etiquetas_Y_Acciones,funcion_voz=Voz)
-  Activado, Texto = Reconocimiento_de_habla()
-
-
+    hablado_del_asistente("Bienvenido Marco")
+    ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz) 
+    
+    while Activado: 
+        hablado_del_asistente("Hola señor, ¿en qué lo puedo ayudar hoy?")
+        
+        
+        ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz) 
+        
+        Activado, Texto = Reconocimiento_de_habla()
 
 else:
-   hablado_del_asistente("Acceso denegado")
-   print("Acceso denegado")
-   verificacion = Reconocimiento_Facial()
+    hablado_del_asistente("Acceso denegado")
+    print("Acceso denegado")
 
+
+  
 
 
 

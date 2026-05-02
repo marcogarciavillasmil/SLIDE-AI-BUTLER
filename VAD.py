@@ -27,7 +27,7 @@ memoria_de_audio = deque(maxlen=100)
 
 #Whisper  pero rapido y pyaudio
 
-modelo_rapido = WhisperModel("small",device="cpu",compute_type="int8")
+modelo_rapido = WhisperModel("medium",device="cpu",compute_type="int8")
 
 Formato=pyaudio.paInt16
 Muestreo=16000

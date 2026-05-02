@@ -113,7 +113,7 @@ class SlideHUD(QMainWindow):
 
         self.temporizador.timeout.connect(self.cerrar_interfaz_por_completo)
 
-        self.temporizador.start(200000000)
+        self.temporizador.start(2147483647)
 
     def iniciar_arrastre_nativo(self, event):
         if event.button() == Qt.LeftButton:

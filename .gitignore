@@ -1,0 +1,6 @@
+Asistente/
+.claude/
+__pycache__/
+*.pyc
+*.wav
+debug.log

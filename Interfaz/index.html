@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>SLIDE — SPHERE v5</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --aq:#00e5cc;--dim:#00796e;--bg:#020b0d;
+  --txt:#b0ede8;--mute:#1e524d;
+  --aq-r:0;--aq-g:229;--aq-b:204;
+}
+body,html{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;user-select:none;
+}
+#preloader{
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px;
+  transition:opacity .8s ease;
+}
+.pre-label{font-size:9px;letter-spacing:6px;color:var(--dim);animation:pre-blink 1.1s ease-in-out infinite}
+.pre-brand{font-size:12px;letter-spacing:14px;color:var(--aq);opacity:0;animation:pre-in .6s 1.6s ease forwards}
+@keyframes pre-blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes pre-in{to{opacity:.55}}
+.shell{
+  width:96%;height:96%;position:relative;overflow:hidden;
+  background:var(--bg);
+  border:1px solid rgba(var(--aq-r),var(--aq-g),var(--aq-b),.13);border-radius:20px;
+  display:flex;flex-direction:column;align-items:center;
+  transition:border-color .5s ease,box-shadow .5s ease;
+}
+.shell.listening{
+  border-color:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.35);
+  box-shadow:0 0 40px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.06),inset 0 0 40px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.03);
+}
+.shell.responding{
+  border-color:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.42);
+  box-shadow:0 0 60px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.10),inset 0 0 60px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.05);
+}
+.cc{position:absolute;width:26px;height:26px;border-color:var(--aq);border-style:solid;opacity:.35}
+.cc-tl{top:13px;left:13px;border-width:1.5px 0 0 1.5px;border-radius:3px 0 0 0}
+.cc-tr{top:13px;right:13px;border-width:1.5px 1.5px 0 0;border-radius:0 3px 0 0}
+.cc-bl{bottom:13px;left:13px;border-width:0 0 1.5px 1.5px;border-radius:0 0 0 3px}
+.cc-br{bottom:13px;right:13px;border-width:0 1.5px 1.5px 0;border-radius:0 0 3px 0}
+.scan{position:absolute;left:0;width:100%;height:1px;
+  background:linear-gradient(to right,transparent,var(--aq),transparent);
+  opacity:.08;animation:scan 12s linear infinite;pointer-events:none;z-index:2}
+@keyframes scan{0%{top:-1%}100%{top:101%}}
+.top-bar{
+  width:100%;padding:20px 36px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  flex-shrink:0;z-index:10;pointer-events:none;
+}
+.sys{font-size:9.5px;letter-spacing:3.5px;color:var(--mute);line-height:2}
+.sys b{color:var(--aq);font-weight:400}
+.clock-box{text-align:right}
+.clk{font-size:20px;color:var(--aq);letter-spacing:2px}
+.clk-d{font-size:9px;letter-spacing:2.5px;color:var(--mute);margin-top:4px}
+.status-strip{
+  position:absolute;top:24px;left:50%;transform:translateX(-50%);
+  display:flex;gap:7px;align-items:center;z-index:10;pointer-events:none;
+}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--mute);transition:background .4s,box-shadow .4s}
+.sdot.on{background:var(--aq);box-shadow:0 0 8px var(--aq);animation:sp .7s ease-in-out infinite}
+@keyframes sp{0%,100%{opacity:.55}50%{opacity:1}}
+.sphere-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;cursor:pointer;z-index:5;
+}
+#main-canvas{display:block}
+.ripple{
+  position:absolute;border-radius:50%;
+  border:1px solid var(--aq);pointer-events:none;
+  animation:rip .95s ease-out forwards;
+}
+@keyframes rip{
+  0%{width:160px;height:160px;opacity:.45;transform:translate(-50%,-50%)}
+  100%{width:500px;height:500px;opacity:0;transform:translate(-50%,-50%)}
+}
+.term-wrap{width:100%;padding:0 26px 18px;flex-shrink:0;z-index:10}
+.term{
+  background:rgba(0,10,9,.92);
+  border:1px solid rgba(var(--aq-r),var(--aq-g),var(--aq-b),.1);
+  border-top:1.5px solid var(--dim);
+  border-radius:10px;padding:14px 16px;
+  backdrop-filter:blur(10px);
+  transition:border-top-color .5s,box-shadow .5s;
+}
+.shell.responding .term,.shell.listening .term{
+  border-top-color:var(--aq);
+  box-shadow:0 0 16px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.08);
+}
+#chat-log{height:80px;overflow-y:auto;font-size:12.5px;line-height:1.72;margin-bottom:10px}
+.input-row{display:flex;align-items:center;gap:10px}
+.prompt-sym{color:var(--aq);font-size:13px;flex-shrink:0}
+#user-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--txt);font-family:'DM Mono',monospace;
+  font-size:12.5px;caret-color:var(--aq);
+}
+#user-input::placeholder{color:var(--mute)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px}
+
+/* ── COLOR PANEL ─────────────────────────────────────────────────────────── */
+#color-panel{
+  position:absolute;bottom:20px;right:20px;
+  z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+}
+#color-toggle{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--aq);border:none;cursor:pointer;
+  box-shadow:0 0 10px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.5);
+  transition:transform .2s,box-shadow .3s;
+  opacity:.7;
+}
+#color-toggle:hover{opacity:1;transform:scale(1.1)}
+#color-swatches{
+  display:none;flex-direction:column;gap:6px;
+  background:rgba(2,11,13,.88);
+  border:1px solid rgba(var(--aq-r),var(--aq-g),var(--aq-b),.2);
+  border-radius:10px;padding:10px 8px;
+  backdrop-filter:blur(12px);
+}
+#color-swatches.open{display:flex}
+.swatch{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid transparent;cursor:pointer;
+  transition:transform .15s,border-color .15s;opacity:.75;
+}
+.swatch:hover{transform:scale(1.18);opacity:1}
+.swatch.active{border-color:#fff;opacity:1;transform:scale(1.12)}
+</style>
+</head>
+<body>
+
+<div id="preloader">
+  <canvas id="pre-canvas" width="200" height="200"></canvas>
+  <div class="pre-label">INICIALIZANDO SISTEMA</div>
+  <div class="pre-brand">SLIDE</div>
+</div>
+
+<div class="shell" id="shell">
+  <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+  <div class="cc cc-bl"></div><div class="cc cc-br"></div>
+  <div class="scan"></div>
+
+  <div class="top-bar">
+    <div class="sys">PROYECTO &nbsp;<b>SLIDE</b><br>ESTADO &nbsp;<b id="mode-lbl">STANDBY</b></div>
+    <div class="clock-box">
+      <div class="clk" id="clock">00:00:00</div>
+      <div class="clk-d" id="date">—</div>
+    </div>
+  </div>
+
+  <div class="status-strip">
+    <div class="sdot" id="d1"></div>
+    <div class="sdot" id="d2"></div>
+    <div class="sdot" id="d3"></div>
+  </div>
+
+  <div class="sphere-wrap" id="sw" onclick="clickReactor(event)">
+    <canvas id="main-canvas"></canvas>
+  </div>
+
+  <div class="term-wrap">
+    <div class="term">
+      <div id="chat-log"></div>
+      <div class="input-row">
+        <span class="prompt-sym">›</span>
+        <input id="user-input" type="text"
+          placeholder="Esperando comandos..."
+          onkeypress="handleEnter(event)"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOR PANEL -->
+  <div id="color-panel">
+    <div id="color-swatches">
+      <!-- swatches se generan por JS -->
+    </div>
+    <button id="color-toggle" title="Cambiar color"></button>
+  </div>
+</div>
+
+<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+<script>
+'use strict';
+const TAU = Math.PI * 2;
+
+// ── PALETA DE COLORES ─────────────────────────────────────────────────────────
+// Cada entrada: [nombre, hex, r, g, b, dimHex, bgHex, mutehex]
+const PALETTES = [
+  { name:'Aqua',    hex:'#00e5cc', r:0,   g:229, b:204, dim:'#00796e', bg:'#020b0d', mute:'#1e524d', txt:'#b0ede8' },
+  { name:'Amarillo',hex:'#f5d800', r:245, g:216, b:0,   dim:'#a08e00', bg:'#0c0b00', mute:'#4a4200', txt:'#ede8a0' },
+  { name:'Morado',  hex:'#b46fff', r:180, g:111, b:255, dim:'#6b3faa', bg:'#07020d', mute:'#3a2060', txt:'#d4b0f0' },
+  { name:'Rojo',    hex:'#ff4455', r:255, g:68,  b:85,  dim:'#aa2233', bg:'#0d0203', mute:'#5a1a22', txt:'#f0b0b8' },
+  { name:'Verde',   hex:'#39ff6e', r:57,  g:255, b:110, dim:'#1a8a3a', bg:'#010d04', mute:'#0e4a20', txt:'#a0f0b8' },
+  { name:'Rosado',  hex:'#ff6eb4', r:255, g:110, b:180, dim:'#aa3a72', bg:'#0d0208', mute:'#5a1a40', txt:'#f0b0d8' },
+  { name:'Naranja', hex:'#ff8c00', r:255, g:140, b:0,   dim:'#aa5a00', bg:'#0d0500', mute:'#5a2e00', txt:'#f0c890' },
+  { name:'Azul',    hex:'#4488ff', r:68,  g:136, b:255, dim:'#2244bb', bg:'#01030d', mute:'#142060', txt:'#a0c0f0' },
+];
+let currentPalette = PALETTES[0];
+// Guardamos rgb del color activo para usarlo en canvas (sin parsear cada frame)
+let AQ_R = 0, AQ_G = 229, AQ_B = 204;
+
+function applyPalette(p) {
+  currentPalette = p;
+  AQ_R = p.r; AQ_G = p.g; AQ_B = p.b;
+  const root = document.documentElement.style;
+  root.setProperty('--aq',   p.hex);
+  root.setProperty('--dim',  p.dim);
+  root.setProperty('--bg',   p.bg);
+  root.setProperty('--mute', p.mute);
+  root.setProperty('--txt',  p.txt);
+  root.setProperty('--aq-r', p.r);
+  root.setProperty('--aq-g', p.g);
+  root.setProperty('--aq-b', p.b);
+  document.body.style.background = p.bg;
+  // Actualiza el botón toggle
+  document.getElementById('color-toggle').style.background = p.hex;
+  document.getElementById('color-toggle').style.boxShadow =
+    `0 0 10px rgba(${p.r},${p.g},${p.b},.5)`;
+  // Marca swatch activo
+  document.querySelectorAll('.swatch').forEach(s =>
+    s.classList.toggle('active', s.dataset.idx == PALETTES.indexOf(p)));
+}
+
+function buildSwatches() {
+  const wrap = document.getElementById('color-swatches');
+  PALETTES.forEach((p, i) => {
+    const s = document.createElement('div');
+    s.className      = 'swatch' + (i === 0 ? ' active' : '');
+    s.dataset.idx    = i;
+    s.title          = p.name;
+    s.style.background = p.hex;
+    s.onclick = e => { e.stopPropagation(); applyPalette(p); };
+    wrap.appendChild(s);
+  });
+}
+
+document.getElementById('color-toggle').onclick = e => {
+  e.stopPropagation();
+  document.getElementById('color-swatches').classList.toggle('open');
+};
+// Cierra panel al hacer click en otro lado
+document.addEventListener('click', () =>
+  document.getElementById('color-swatches').classList.remove('open'));
+
+// ── PRELOADER ─────────────────────────────────────────────────────────────────
+;(function () {
+  const c  = document.getElementById('pre-canvas');
+  const xp = c.getContext('2d');
+  const N = 150, R = 74, CX = 100, CY = 100;
+  let tp = 0;
+  const vecs = Array.from({ length: N }, (_, i) => {
+    const phi   = Math.acos(1 - 2 * (i + .5) / N);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    return { sph: Math.sin(phi), cph: Math.cos(phi),
+             cth: Math.cos(theta), sth: Math.sin(theta) };
+  });
+  function preFrame() {
+    xp.clearRect(0, 0, 200, 200);
+    const cRY = Math.cos(tp * .28), sRY = Math.sin(tp * .28);
+    const cRX = Math.cos(tp * .10), sRX = Math.sin(tp * .10);
+    for (let i = 0; i < N; i++) {
+      const v = vecs[i];
+      let sx = v.sph * (v.cth * cRY - v.sth * sRY);
+      let sy = v.sph * (v.sth * cRY + v.cth * sRY);
+      let sz = v.cph;
+      const ty = sy * cRX - sz * sRX; sz = sy * sRX + sz * cRX; sy = ty;
+      const sc = (sz + 2) / 3;
+      xp.beginPath(); xp.arc(CX + sx * R * sc, CY + sy * R * sc, 0.7 + sc * 1.4, 0, TAU);
+      xp.fillStyle = `rgba(0,229,204,${0.12 + sc * .72})`; xp.fill();
+    }
+    tp += .013;
+  }
+  const pid = setInterval(preFrame, 16);
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const pl = document.getElementById('preloader');
+      pl.style.opacity = '0';
+      setTimeout(() => { clearInterval(pid); pl.remove(); bootMain(); }, 800);
+    }, 3000);
+  });
+})();
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+(function tick() {
+  const n = new Date(), p = v => String(v).padStart(2, '0');
+  document.getElementById('clock').textContent =
+    `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  document.getElementById('date').textContent =
+    n.toLocaleDateString('es-ES', { weekday:'short', year:'numeric',
+      month:'short', day:'numeric' }).toUpperCase();
+  setTimeout(tick, 1000);
+})();
+
+// ── SPHERE ENGINE ─────────────────────────────────────────────────────────────
+let MC, MX, MW, MH, MCX, MCY;
+let frameTime    = 0;
+let speedMul     = 1.0;
+let mode         = 'idle';
+
+// Timers de estado (gestionados 100% en JS)
+let listenTimer  = null;   // si pasan 9s en listening → vuelve a idle
+let respondTimer = null;   // si pasan 30s en responding → vuelve a idle
+
+// Efecto de voz: intensidad interpolada (0–1) y fase de onda
+let speakIntensity = 0.0;
+let speakPulse     = 0.0;
+
+const N_SPHERE = 290, N_AMB = 200, N_STARS = 220, N_HEX = 32, N_BARS = 36;
+const sPts = [], ambPts = [], stars = [], hexPts = [], rings = [];
+const barPh = new Float32Array(N_BARS).map(() => Math.random() * TAU);
+const proj  = Array.from({ length: N_SPHERE }, () =>
+  ({ x:0, y:0, z:0, sc:0, r:0, light:false }));
+
+const HEX_CHARS = '0123456789ABCDEF';
+function randHex(len) {
+  let s = '';
+  for (let i = 0; i < len; i++) s += HEX_CHARS[Math.random() * 16 | 0];
+  return s;
+}
+
+function bootMain() {
+  buildSwatches();
+  const wrap = document.getElementById('sw');
+  MW = wrap.clientWidth; MH = wrap.clientHeight;
+  MC = document.getElementById('main-canvas');
+  MC.width = MW; MC.height = MH;
+  MX = MC.getContext('2d');
+  MCX = MW / 2; MCY = MH / 2;
+
+  for (let i = 0; i < N_SPHERE; i++) {
+    const phi   = Math.acos(1 - 2 * (i + .5) / N_SPHERE);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    sPts.push({
+      sph: Math.sin(phi), cph: Math.cos(phi),
+      cth: Math.cos(theta), sth: Math.sin(theta),
+      nOff: Math.random() * 100, nFreq: .5 + Math.random() * 1.4,
+      nAmp: .035 + Math.random() * .12, dotR: .6 + Math.random() * .7,
+      light: Math.random() < .10,
+      voicePh: Math.random() * TAU   // fase individual para onda de voz
+    });
+  }
+  for (let i = 0; i < N_AMB; i++) ambPts.push({
+    x: MCX + (Math.random()-.5)*MW*.95, y: MCY + (Math.random()-.5)*MH*.9,
+    vx: (Math.random()-.5)*.22, vy: (Math.random()-.5)*.22,
+    r: .4+Math.random()*1.8, a: .025+Math.random()*.11,
+    ph: Math.random()*TAU, phSpd: .004+Math.random()*.009
+  });
+  for (let i = 0; i < N_STARS; i++) stars.push({
+    x: Math.random()*MW, y: Math.random()*MH,
+    r: .2+Math.random()*.9, a: .03+Math.random()*.16,
+    ph: Math.random()*TAU, spd: .001+Math.random()*.004
+  });
+  for (let i = 0; i < N_HEX; i++) hexPts.push({
+    x: Math.random()*MW, y: Math.random()*MH,
+    vx: (Math.random()-.5)*.12, vy: (Math.random()-.5)*.12,
+    a: .06+Math.random()*.12, ph: Math.random()*TAU,
+    phSpd: .003+Math.random()*.007,
+    txt: randHex(4+(Math.random()*4|0)), timer:0,
+    interval: 80+(Math.random()*160|0)
+  });
+  requestAnimationFrame(loop);
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+function loop() {
+  requestAnimationFrame(loop);
+  MX.clearRect(0, 0, MW, MH);
+
+  const tgtSpd = mode==='idle' ? 1.0 : mode==='listening' ? 1.9 : 3.2;
+  speedMul += (tgtSpd - speedMul) * .038;
+
+  frameTime += .016 * speedMul;
+  const FT = frameTime;
+
+  // speakIntensity: sube a 1 cuando responding, baja a 0 en otros modos
+  const tgtIntensity = mode === 'responding' ? 1.0 : 0.0;
+  speakIntensity += (tgtIntensity - speakIntensity) * .045;
+  speakPulse += .065 * speedMul;
+
+  const sScale = mode==='idle' ? 1.45 : mode==='listening' ? 1.58 : 1.68;
+  const SR = Math.min(MW, MH) * .27 * sScale;
+
+  // color activo
+  const R = AQ_R, G = AQ_G, B = AQ_B;
+  const aqMain  = `rgb(${R},${G},${B})`;
+  const aqFull  = (a) => `rgba(${R},${G},${B},${a})`;
+
+  // ── 1. ESTRELLAS ────────────────────────────────────────────────────────────
+  MX.fillStyle = aqMain;
+  for (let i = 0; i < N_STARS; i++) {
+    const s = stars[i]; s.ph += s.spd;
+    MX.globalAlpha = s.a * (.5+.5*Math.sin(s.ph)) * (mode==='idle'?1:1.4);
+    MX.beginPath(); MX.arc(s.x, s.y, s.r, 0, TAU); MX.fill();
+  }
+  MX.globalAlpha = 1;
+
+  // ── 2. PARTÍCULAS AMBIENTALES ────────────────────────────────────────────────
+  MX.fillStyle = aqMain;
+  for (let i = 0; i < N_AMB; i++) {
+    const p = ambPts[i];
+    p.ph += p.phSpd * speedMul; p.x += p.vx*speedMul; p.y += p.vy*speedMul;
+    if (p.x<8||p.x>MW-8) p.vx*=-1;
+    if (p.y<8||p.y>MH-8) p.vy*=-1;
+    MX.globalAlpha = Math.min(p.a*(.55+.45*Math.sin(p.ph))*(mode==='idle'?1:1.7), .32);
+    MX.beginPath(); MX.arc(p.x, p.y, p.r*(mode==='idle'?1:1.25), 0, TAU); MX.fill();
+  }
+  MX.globalAlpha = 1;
+
+  // ── 3. HEX FRAGMENTS ────────────────────────────────────────────────────────
+  MX.font = '8px "DM Mono",monospace'; MX.fillStyle = aqMain;
+  for (let i = 0; i < N_HEX; i++) {
+    const h = hexPts[i];
+    if (++h.timer >= h.interval) { h.txt=randHex(4+(Math.random()*4|0)); h.timer=0; }
+    h.ph+=h.phSpd*speedMul; h.x+=h.vx*speedMul; h.y+=h.vy*speedMul;
+    if (h.x<0||h.x>MW) h.vx*=-1;
+    if (h.y<0||h.y>MH) h.vy*=-1;
+    MX.globalAlpha = Math.min(h.a*(.5+.5*Math.sin(h.ph))*(mode==='idle'?.6:1.1), .18);
+    MX.fillText(h.txt, h.x, h.y);
+  }
+  MX.globalAlpha = 1;
+
+  // ── 4. PROYECCIÓN ESFERA ─────────────────────────────────────────────────────
+  const cRY=Math.cos(FT*.28), sRY=Math.sin(FT*.28);
+  const cRX=Math.cos(FT*.10), sRX=Math.sin(FT*.10);
+  const cRZ=Math.cos(FT*.05), sRZ=Math.sin(FT*.05);
+
+  for (let i = 0; i < N_SPHERE; i++) {
+    const p = sPts[i], o = proj[i];
+
+    // Amplitud de ruido base
+    let nAmp = p.nAmp * speedMul;
+
+    // ── EFECTO DE VOZ ──
+    // Cuando speakIntensity > 0, cada punto de la esfera se desplaza
+    // siguiendo una onda sinusoidal que viaja desde el ecuador hacia los polos,
+    // creando una deformación visible y orgánica que simula vibración de voz.
+    // La onda tiene 3 frecuencias superpuestas para que no sea monótona.
+    if (speakIntensity > 0.01) {
+      const lat   = p.cph;                              // latitud del punto (−1 a 1)
+      const wave  = Math.sin(speakPulse * 4.5 + lat * 6.0 + p.voicePh) * .13
+                  + Math.sin(speakPulse * 2.8 + lat * 3.5 + p.voicePh * 1.3) * .07
+                  + Math.sin(speakPulse * 7.1 + lat * 9.0 + p.voicePh * .7)  * .04;
+      nAmp += wave * speakIntensity;
+    }
+
+    const rr = SR * (1 + Math.sin(FT * p.nFreq + p.nOff) * nAmp);
+    let sx = p.sph*(p.cth*cRY - p.sth*sRY);
+    let sy = p.sph*(p.sth*cRY + p.cth*sRY);
+    let sz = p.cph;
+    let ty = sy*cRX-sz*sRX; sz=sy*sRX+sz*cRX; sy=ty;
+    let tx = sx*cRZ-sy*sRZ; ty=sx*sRZ+sy*cRZ; sx=tx; sy=ty;
+    const sc = (sz+2)/3;
+    o.x = MCX+sx*rr*sc; o.y = MCY+sy*rr*sc; o.z = sz; o.sc = sc;
+    // Tamaño del punto también pulsa levemente con la voz
+    const vBoost = speakIntensity * Math.max(0, Math.sin(speakPulse*3.1+p.voicePh)) * .5;
+    o.r     = p.dotR * (1 + sc*(mode==='idle'?1.6:2.2) + vBoost);
+    o.light = p.light;
+  }
+  proj.sort((a, b) => a.z - b.z);
+
+  // ── 5. CONEXIONES ────────────────────────────────────────────────────────────
+  const maxD2 = (SR*(mode==='idle'?.36:.50))**2;
+  const step  = mode==='idle'?4:3;
+  MX.beginPath();
+  MX.strokeStyle = aqFull(mode==='idle'?.055:.11);
+  MX.lineWidth   = mode==='idle'?.35:.5;
+  for (let i = 0; i < N_SPHERE; i+=step) {
+    const pi = proj[i];
+    for (let j = i+1; j < N_SPHERE; j+=step) {
+      const pj=proj[j], dx=pi.x-pj.x, dy=pi.y-pj.y;
+      if (dx*dx+dy*dy<maxD2) { MX.moveTo(pi.x,pi.y); MX.lineTo(pj.x,pj.y); }
+    }
+  }
+  MX.stroke();
+
+  // ── 6. DOTS — bloom + sharp ───────────────────────────────────────────────
+  MX.save();
+  MX.filter      = 'blur(6px)';
+  MX.globalAlpha = mode==='idle' ? .15 : .28 + speakIntensity*.12;
+  MX.fillStyle   = aqMain;
+  MX.beginPath();
+  for (let i = 0; i < N_SPHERE; i++) {
+    const p=proj[i];
+    if (p.sc>.5) { MX.moveTo(p.x+p.r*2.5,p.y); MX.arc(p.x,p.y,p.r*2.5,0,TAU); }
+  }
+  MX.fill();
+  MX.filter='none'; MX.globalAlpha=1; MX.restore();
+
+  MX.fillStyle = aqFull(.85); MX.beginPath();
+  for (let i=0;i<N_SPHERE;i++) {
+    const p=proj[i]; if(p.light) continue;
+    MX.moveTo(p.x+p.r,p.y); MX.arc(p.x,p.y,p.r,0,TAU);
+  }
+  MX.fill();
+  MX.fillStyle = aqFull(.92); MX.beginPath();
+  for (let i=0;i<N_SPHERE;i++) {
+    const p=proj[i]; if(!p.light) continue;
+    MX.moveTo(p.x+p.r,p.y); MX.arc(p.x,p.y,p.r*1.3,0,TAU);
+  }
+  MX.fill();
+
+  // ── 7. EFECTO DE VOZ VISIBLE — anillos respirantes ────────────────────────
+  // 4 anillos que se expanden y contraen de forma asimétrica mientras habla.
+  // Claramente diferente al idle. Sube y baja con speakIntensity.
+  if (speakIntensity > 0.01) {
+    for (let k = 0; k < 4; k++) {
+      const freq    = 1.6 + k * .9;
+      const phase   = k * (TAU / 4);
+      const breathe = Math.sin(speakPulse * freq + phase);
+      const ringR   = SR * (1.12 + k * .08) + breathe * speakIntensity * 18;
+      const alpha   = speakIntensity * (.22 - k * .04) * (.55 + .45 * Math.abs(breathe));
+      if (alpha < .01) continue;
+      MX.beginPath(); MX.arc(MCX, MCY, Math.max(1, ringR), 0, TAU);
+      MX.strokeStyle = aqFull(alpha);
+      MX.lineWidth   = 1.2 - k * .22;
+      MX.stroke();
+    }
+
+    // Puntos orbitando el ecuador de la esfera — efecto extra de voz
+    const nOrbit = 6;
+    for (let k = 0; k < nOrbit; k++) {
+      const ang     = (k / nOrbit) * TAU + speakPulse * .8;
+      const orbitR  = SR * 1.08 + Math.sin(speakPulse * 2.2 + k) * speakIntensity * 10;
+      const ox      = MCX + Math.cos(ang) * orbitR;
+      const oy      = MCY + Math.sin(ang) * orbitR * .38;  // aplanado → parece 3D
+      const oa      = speakIntensity * .55 * (.5+.5*Math.sin(speakPulse*1.8+k*1.3));
+      MX.beginPath(); MX.arc(ox, oy, 2.5, 0, TAU);
+      MX.fillStyle   = aqFull(oa); MX.fill();
+    }
+  }
+
+  // ── 8. WAVEFORM SUTIL (solo en listening) ────────────────────────────────
+  if (mode === 'listening') {
+    const wR = SR * 1.18;
+    MX.save(); MX.translate(MCX, MCY); MX.lineCap='round';
+    for (let i = 0; i < N_BARS; i++) {
+      barPh[i] += .03 + Math.random()*.02;
+      const ang = (i/N_BARS)*TAU;
+      const bH  = (2+Math.sin(barPh[i])*7+Math.random()*3)*speedMul*.25;
+      const a   = .25*Math.max(0, bH/(10*speedMul*.25+.01));
+      MX.beginPath();
+      MX.moveTo(Math.cos(ang)*wR, Math.sin(ang)*wR);
+      MX.lineTo(Math.cos(ang)*(wR+bH), Math.sin(ang)*(wR+bH));
+      MX.strokeStyle=aqFull(a); MX.lineWidth=1.4; MX.stroke();
+    }
+    MX.restore();
+  }
+
+  // ── 9. EXPANDING RINGS ────────────────────────────────────────────────────
+  for (let i=rings.length-1;i>=0;i--) {
+    const r=rings[i];
+    r.rad+=3*speedMul; r.alpha-=.016;
+    if (r.alpha<=0) { rings.splice(i,1); continue; }
+    MX.beginPath(); MX.arc(MCX,MCY,r.rad,0,TAU);
+    MX.strokeStyle=aqFull(r.alpha); MX.lineWidth=.8; MX.stroke();
+  }
+}
+
+function spawnRings(n=1, offset=0) {
+  for (let i=0;i<n;i++)
+    setTimeout(()=>rings.push({rad:Math.min(MW,MH)*.13+offset,alpha:.45}),i*160);
+}
+
+// ── ESTADO ────────────────────────────────────────────────────────────────────
+const shell  = document.getElementById('shell');
+const modLbl = document.getElementById('mode-lbl');
+const dots   = ['d1','d2','d3'].map(id=>document.getElementById(id));
+
+function _clearTimers() {
+  if (listenTimer)  { clearTimeout(listenTimer);  listenTimer  = null; }
+  if (respondTimer) { clearTimeout(respondTimer); respondTimer = null; }
+}
+function _applyMode() {
+  shell.classList.toggle('listening',  mode==='listening');
+  shell.classList.toggle('responding', mode==='responding');
+  dots.forEach(d => d.classList.toggle('on', mode!=='idle'));
+}
+function _goIdle() {
+  _clearTimers();
+  mode = 'idle'; modLbl.textContent = 'STANDBY'; _applyMode();
+}
+
+// Llamado desde Python: estado = 'activo' | 'inactivo'  ← FIRMA INTACTA
+function setEstado(estado) {
+  _clearTimers();
+  if (estado === 'activo') {
+    mode = 'responding'; modLbl.textContent = 'RESPONDIENDO'; _applyMode();
+    spawnRings(3, 0);
+    // Timeout de seguridad: si Python no llama 'inactivo' en 60s → vuelve a idle
+    respondTimer = setTimeout(_goIdle, 60000);
+  } else {
+    _goIdle();
+  }
+}
+
+// Llamado desde Python  ← FIRMA INTACTA
+function toggleInterfaz(mostrar) { shell.style.display = mostrar ? 'flex' : 'none'; }
+
+// ── CLICK REACTOR ─────────────────────────────────────────────────────────────
+function clickReactor(e) {
+  const wrap = document.getElementById('sw');
+  const rect = wrap.getBoundingClientRect();
+  const rip  = document.createElement('div');
+  rip.className='ripple';
+  rip.style.left=(e.clientX-rect.left)+'px';
+  rip.style.top =(e.clientY-rect.top )+'px';
+  wrap.appendChild(rip);
+  setTimeout(()=>rip.remove(), 950);
+
+  spawnRings(2, 0);
+  _clearTimers();
+  mode='listening'; modLbl.textContent='ESCUCHANDO...'; _applyMode();
+
+  // Timeout de escucha: si Python no responde en 9s → vuelve a idle
+  listenTimer = setTimeout(_goIdle, 9000);
+
+  if (window.backend) backend.activar_slide();
+}
+
+// ── TERMINAL — firma appendLog intacta ────────────────────────────────────────
+const chatLog = document.getElementById('chat-log');
+const userInp = document.getElementById('user-input');
+
+function appendLog(mensaje, color) {
+  color = color || '#ffcc00';
+  const line = document.createElement('div');
+  line.style.color=color; line.textContent=mensaje;
+  chatLog.appendChild(line); chatLog.scrollTop=chatLog.scrollHeight;
+}
+function handleEnter(event) {
+  if (event.key!=='Enter') return;
+  const text=userInp.value.trim(); if(!text) return;
+  appendLog(`OPR >> ${text}`, '#ffffff');
+  userInp.value='';
+  if (window.backend) backend.recibir_comando(text);
+}
+
+// ── QWebChannel ───────────────────────────────────────────────────────────────
+var backend;
+if (typeof QWebChannel !== 'undefined') {
+  new QWebChannel(qt.webChannelTransport, ch=>{ backend=ch.objects.backend; });
+}
+
+window.addEventListener('resize', () => {
+  if (!MC) return;
+  const wrap=document.getElementById('sw');
+  MW=wrap.clientWidth; MH=wrap.clientHeight;
+  MC.width=MW; MC.height=MH; MCX=MW/2; MCY=MH/2;
+  stars.forEach(s=>{s.x=Math.random()*MW; s.y=Math.random()*MH;});
+});
+</script>
+</body>
+</html>
