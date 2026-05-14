@@ -135,6 +135,173 @@ body,html{
 }
 .swatch:hover{transform:scale(1.18);opacity:1}
 .swatch.active{border-color:#fff;opacity:1;transform:scale(1.12)}
+
+/* ── BOTÓN TOGGLE MODO AMIGO ──────────────────────────────────────────────── */
+#buddy-toggle{
+  position:absolute;bottom:20px;right:64px;z-index:101;
+  height:28px;padding:0 11px;
+  background:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.1);
+  border:2px solid rgba(var(--aq-r),var(--aq-g),var(--aq-b),.45);
+  color:var(--aq);font-size:8.5px;letter-spacing:2px;
+  cursor:pointer;opacity:.75;
+  display:flex;align-items:center;gap:5px;
+  transition:opacity .2s,box-shadow .2s,background .2s;
+  font-family:'DM Mono',monospace;
+}
+#buddy-toggle:hover{
+  opacity:1;background:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.22);
+  box-shadow:0 0 12px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.35);
+}
+
+/* ── MODO AMIGO – SHELL ───────────────────────────────────────────────────── */
+#buddy-shell{
+  position:absolute;inset:0;z-index:60;
+  background:transparent;
+  display:none;flex-direction:column;
+  align-items:stretch;padding:22px 28px 18px;gap:14px;overflow:hidden;
+}
+#buddy-shell.open{display:flex;}
+
+/* canvas de fondo Minecraft */
+#buddy-bg{
+  position:absolute;inset:0;z-index:0;
+  width:100%;height:100%;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  pointer-events:none;
+}
+
+/* grid y esquinas desactivadas (las reemplaza el paisaje) */
+.bdy-grid{display:none;}
+.bdy-corner{display:none;}
+
+/* cabecera – panel madera */
+.bdy-header{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;position:relative;z-index:10;
+  background:rgba(28,16,6,.82);
+  border-bottom:2px solid #7a5220;
+  margin:-22px -28px 0;padding:14px 28px 12px;
+  backdrop-filter:blur(2px);
+}
+.bdy-title{
+  font-size:9px;letter-spacing:4px;
+  color:#f5c030;font-family:'DM Mono',monospace;
+  text-shadow:0 0 8px rgba(240,160,30,.5);
+}
+.bdy-back{
+  position:relative;z-index:200;
+  background:rgba(90,55,18,.85);
+  border:2px solid #7a5220;
+  color:#f5c030;font-family:'DM Mono',monospace;
+  font-size:8.5px;letter-spacing:2px;cursor:pointer;
+  padding:5px 14px;
+  transition:background .2s,box-shadow .2s;
+  pointer-events:auto;
+}
+.bdy-back:hover{
+  background:rgba(130,80,25,.95);
+  box-shadow:0 0 10px rgba(240,160,40,.35);
+}
+
+/* área principal: mascota + chat */
+.bdy-main{flex:1;display:flex;gap:20px;min-height:0;z-index:2;overflow:hidden;}
+
+/* columna mascota */
+.bdy-mascot-col{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  flex-shrink:0;width:180px;
+}
+#buddy-canvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* burbuja de diálogo – letrero de madera */
+#buddy-speech{
+  width:100%;
+  background:rgba(35,20,8,.88);
+  border:2px solid #7a5220;
+  box-shadow:4px 4px 0 rgba(0,0,0,.5);
+  padding:11px 13px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:#f5e6c8;line-height:1.75;
+  border-radius:0;position:relative;min-height:52px;
+  transition:opacity .3s;
+}
+#buddy-speech::before{
+  content:'';position:absolute;top:-10px;left:-2px;
+  border:5px solid transparent;
+  border-bottom:8px solid #7a5220;
+}
+
+/* nombre + estado */
+.bdy-name{font-size:8px;letter-spacing:3px;color:#f5c030;opacity:.9;font-family:'DM Mono',monospace;}
+.bdy-status-dot{
+  width:6px;height:6px;border-radius:0;
+  background:#f5c030;display:inline-block;margin-right:5px;
+  animation:bsdot .8s ease-in-out infinite;
+}
+@keyframes bsdot{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* columna chat */
+.bdy-chat-col{flex:1;width:100%;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden;}
+#buddy-log{
+  flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
+  padding:6px;min-height:0;
+  background:rgba(10,5,2,.35);
+}
+#buddy-log::-webkit-scrollbar{width:4px;}
+#buddy-log::-webkit-scrollbar-thumb{background:#7a5220;border-radius:0;}
+
+/* burbujas de chat – madera oscura */
+.bchat{
+  padding:10px 14px;
+  font-family:'DM Mono',monospace;font-size:11.5px;
+  line-height:1.65;max-width:90%;
+  box-shadow:3px 3px 0 rgba(0,0,0,.4);
+}
+.bchat.user{
+  align-self:flex-end;
+  background:rgba(100,62,20,.82);
+  border:2px solid #9a6a28;
+  color:#f5e6c8;border-radius:6px 0 6px 6px;
+}
+.bchat.aiden{
+  align-self:flex-start;
+  background:rgba(40,22,8,.82);
+  border:2px solid #6a4818;
+  color:#f0ddb8;border-radius:0 6px 6px 6px;
+}
+.bchat .bsender{
+  font-size:8px;letter-spacing:2.5px;color:#f5c030;
+  margin-bottom:4px;opacity:.9;
+}
+
+/* input de buddy – estética madera */
+.bdy-input-row{display:flex;gap:8px;flex-shrink:0;z-index:2;}
+#buddy-input{
+  flex:1;
+  background:rgba(25,14,5,.88);
+  border:2px solid #7a5220;
+  border-radius:0;color:#f5e6c8;
+  font-family:'DM Mono',monospace;font-size:12px;
+  padding:10px 14px;outline:none;caret-color:#f5c030;
+  transition:border-color .3s,box-shadow .3s;
+}
+#buddy-input:focus{
+  border-color:#b07830;
+  box-shadow:0 0 14px rgba(240,160,40,.18);
+}
+#buddy-input::placeholder{color:rgba(160,110,50,.65);}
+#buddy-send{
+  background:rgba(110,65,18,.9);
+  border:2px solid #9a6a28;
+  color:#f5c030;font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:2.5px;
+  cursor:pointer;padding:0 22px;border-radius:0;
+  transition:background .2s,box-shadow .2s;
+}
+#buddy-send:hover{
+  background:rgba(150,90,28,.95);
+  box-shadow:0 0 12px rgba(240,160,40,.3);
+}
 </style>
 </head>
 <body>
@@ -149,7 +316,6 @@ body,html{
   <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
   <div class="cc cc-bl"></div><div class="cc cc-br"></div>
   <div class="scan"></div>
-
   <div class="top-bar">
     <div class="sys">PROYECTO &nbsp;<b>SLIDE</b><br>ESTADO &nbsp;<b id="mode-lbl">STANDBY</b></div>
     <div class="clock-box">
@@ -177,6 +343,32 @@ body,html{
           placeholder="Esperando comandos..."
           onkeypress="handleEnter(event)"/>
       </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN MODO AMIGO -->
+  <button id="buddy-toggle" onclick="openBuddyMode()" title="Modo Amigo AIDEN">☻ AIDEN</button>
+
+  <!-- ── MODO AMIGO ──────────────────────────────────────────────────────── -->
+  <div id="buddy-shell">
+    <canvas id="buddy-bg"></canvas>
+
+    <div class="bdy-header">
+      <div class="bdy-title"><span class="bdy-status-dot"></span>AIDEN · MODO AMIGO</div>
+      <button class="bdy-back" onclick="closeBuddyMode()">← VOLVER</button>
+    </div>
+
+    <div class="bdy-main">
+      <div class="bdy-chat-col">
+        <div id="buddy-log"></div>
+      </div>
+    </div>
+
+    <div class="bdy-input-row">
+      <input id="buddy-input" type="text"
+        placeholder="Escríbeme algo..."
+        onkeypress="buddyEnter(event)"/>
+      <button id="buddy-send" onclick="buddySend()">ENVIAR</button>
     </div>
   </div>
 
@@ -637,6 +829,15 @@ function appendLog(mensaje, color) {
   const line = document.createElement('div');
   line.style.color=color; line.textContent=mensaje;
   chatLog.appendChild(line); chatLog.scrollTop=chatLog.scrollHeight;
+  // Espejo al Modo Amigo (solo respuestas de AIDEN, no comandos del usuario)
+  if (buddyOpen && !mensaje.startsWith('OPR >> ')) {
+    const clean = mensaje.replace(/^(AIDEN:|SLIDE:)\s*/i,'').trim();
+    if (clean) {
+      _buddyAddMsg(clean, 'aiden');
+      _buddySpeechTimed(clean.length>70 ? clean.slice(0,70)+'…' : clean, 5500);
+      buddyCurFrame = 'happy';
+    }
+  }
 }
 function handleEnter(event) {
   if (event.key!=='Enter') return;
@@ -644,6 +845,513 @@ function handleEnter(event) {
   appendLog(`OPR >> ${text}`, '#ffffff');
   userInp.value='';
   if (window.backend) backend.recibir_comando(text);
+}
+
+// ── MODO AMIGO ────────────────────────────────────────────────────────────────
+let buddyOpen = false;
+let buddyBc = null, buddyBx = null;
+let buddyCurFrame = 'idle', buddyT = 0, buddyBobB = 0;
+let buddySpeechTimer = null;
+let buddyPrevMode = 'idle';
+
+// Sprites 12×16, escala 8px. Estética Minecraft duck:
+// 1=cuerpo(colorido) 2=sombra(oscuro) 3=ojo-centro(negro) 4=pico/patas(acento)
+// 5=blanco(brillo ojo) 4=naranja(pico/patas/mejillas) 3=negro(ojo) 2=sombra 1=amarillo
+const BSPR = {
+  idle:[
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,3,3,1,1,1,1,3,3,1,1],
+    [1,1,2,3,1,1,1,1,2,3,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,4,4,4,4,4,1,1,1,1],
+    [1,1,1,4,4,4,4,4,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,4,4,0,0,4,4,0,0,0],
+    [0,0,4,4,4,0,0,4,4,4,0,0],
+  ],
+  happy:[
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,3,3,1,1,1,1,3,3,1,1],
+    [1,1,3,3,1,1,1,1,3,3,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,4,4,4,4,4,4,4,1,1,1],
+    [1,1,1,4,4,4,4,4,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [4,4,0,0,0,0,0,0,0,0,4,4],
+    [0,0,0,0,0,0,0,0,0,0,0,0],
+  ],
+  think:[
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,3,3,1,1,1,1,1,1,1,1],
+    [1,1,2,3,1,1,1,1,3,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,4,4,4,1,1,1,1,1,1,1],
+    [1,1,1,4,4,4,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,4,4,0,0,4,4,0,0,0],
+    [0,0,4,4,4,0,0,4,4,4,0,0],
+  ],
+  listen:[
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,3,3,3,1,1,1,3,3,3,1,1],
+    [1,2,3,3,1,1,1,2,3,3,1,1],
+    [1,3,3,3,1,1,1,3,3,3,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,4,4,4,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,4,4,0,0,4,4,0,0,0],
+    [0,0,4,4,4,0,0,4,4,4,0,0],
+  ],
+  sleep:[
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,4,4,1,1,1,1,4,4,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,4,4,4,4,4,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0],
+    [0,0,0,4,4,0,0,4,4,0,0,0],
+    [0,0,4,4,4,0,0,4,4,4,0,0],
+  ],
+};
+
+const BSCALE=8, BCW=96, BCH=148, BSPR_Y=20;
+
+// Colores FIJOS – pato Minecraft: ojos blancos sobre cara amarilla, sin bordes oscuros
+function _buddyColors(){
+  return [null,
+    '#f0c030',  // 1: cuerpo amarillo
+    '#1a120a',  // 2: pupila (punto negro pequeño)
+    '#f5f5ee',  // 3: blanco del ojo
+    '#e07820',  // 4: pico y patas naranja
+  ];
+}
+
+// ── FONDO MINECRAFT ATARDECER ────────────────────────────────────────────────
+function drawBuddyScene(){
+  const bc = document.getElementById('buddy-bg'); if(!bc) return;
+  const W = bc.parentElement.offsetWidth;
+  const H = bc.parentElement.offsetHeight;
+  if(!W||!H) return;
+  bc.width=W; bc.height=H;
+  const bx=bc.getContext('2d');
+  const P=8; // tamaño bloque Minecraft (px)
+  const cols=Math.ceil(W/P), rows=Math.ceil(H/P);
+  const gY=Math.floor(rows*0.62); // fila donde empieza el suelo
+
+  // ── Cielo: atardecer Minecraft ────────────────────────────────────────────
+  const skyBands=[
+    ['#0d0a2a',2],['#1a1240',2],['#2d1860',2],['#4a1e70',2],
+    ['#7a2068',2],['#a02850',2],['#c0382a',2],['#d84e1e',2],
+    ['#e86018',2],['#f07820',2],['#f49028',2],['#f6a82e',2],
+    ['#f8c030',2],['#fad040',2],['#fce060',2],
+  ];
+  let sy=0;
+  for(const [color,h] of skyBands){
+    bx.fillStyle=color;
+    bx.fillRect(0,sy*P,W,h*P+2);
+    sy+=h;
+    if(sy>=gY) break;
+  }
+  // fill rest of sky up to ground
+  bx.fillStyle='#fce060'; bx.fillRect(0,sy*P,W,(gY-sy)*P+2);
+
+  // ── Sol (bloque 4×4) ──────────────────────────────────────────────────────
+  const sx=Math.floor(cols*0.72)-2, sunY=Math.floor(gY*0.48);
+  bx.fillStyle='#ffe000'; bx.fillRect(sx*P,sunY*P,4*P,4*P);
+  bx.fillStyle='#ffffff'; bx.fillRect((sx+1)*P,(sunY+1)*P,2*P,2*P);
+
+  // ── Luna y estrellas ──────────────────────────────────────────────────────
+  bx.fillStyle='#e8e8c0'; bx.fillRect(3*P,2*P,2*P,2*P);
+  bx.fillStyle='#1a1240'; bx.fillRect(4*P,2*P,1*P,1*P); // luna creciente
+  [[4,1],[10,3],[18,1],[26,2],[32,1],[7,4],[14,2],[22,3]].forEach(([x,y])=>{
+    if(y<gY*0.25){ bx.fillStyle='#ffffff'; bx.fillRect(x*P,y*P,2,2); }
+  });
+
+  // ── Suelo: hierba ────────────────────────────────────────────────────────
+  for(let gx=0;gx<cols;gx++){
+    bx.fillStyle=gx%2===0?'#5d8a3c':'#4e7a30'; bx.fillRect(gx*P,gY*P,P,P);
+    bx.fillStyle=gx%3===0?'#7ab554':'#68a042'; bx.fillRect(gx*P,gY*P,P,3);
+  }
+  // Tierra (3 capas)
+  const dirtColors=[['#8b5e3c','#7a5030'],['#7a5030','#6a4020'],['#5a3818','#4a2c14']];
+  dirtColors.forEach(([a,b],di)=>{
+    for(let gx=0;gx<cols;gx++){
+      bx.fillStyle=gx%2===0?a:b; bx.fillRect(gx*P,(gY+1+di)*P,P,P);
+    }
+  });
+  bx.fillStyle='#3a200e'; bx.fillRect(0,(gY+4)*P,W,H-(gY+4)*P);
+
+  // ── Árboles pixel-art ────────────────────────────────────────────────────
+  function drawTree(tx){
+    const ty=gY-1;
+    // tronco
+    [[tx,ty],[tx,ty+1],[tx+1,ty],[tx+1,ty+1]].forEach(([x,y])=>{
+      bx.fillStyle=(x+y)%2===0?'#5c3317':'#4a2810'; bx.fillRect(x*P,y*P,P,P);
+    });
+    // hojas (7×5 bloque)
+    const lc=['#2d7a1a','#3d9a22','#1d6a0e','#4aaa2a'];
+    const lp=[[0,0,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],
+              [0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0]];
+    lp.forEach((row,ry)=>row.forEach((on,rx)=>{
+      if(!on) return;
+      bx.fillStyle=lc[(rx+ry)%lc.length];
+      bx.fillRect((tx-3+rx)*P,(ty-5+ry)*P,P,P);
+    }));
+  }
+  drawTree(Math.floor(cols*0.1));
+  drawTree(Math.floor(cols*0.86));
+
+  // ── Brillo en el horizonte ────────────────────────────────────────────────
+  const glow=bx.createLinearGradient(0,(gY-4)*P,0,(gY+1)*P);
+  glow.addColorStop(0,'rgba(250,200,50,0)');
+  glow.addColorStop(0.5,'rgba(250,200,50,0.22)');
+  glow.addColorStop(1,'rgba(0,0,0,0)');
+  bx.fillStyle=glow; bx.fillRect(0,(gY-4)*P,W,5*P);
+}
+
+function _drawBuddySprite(frame){
+  const C=_buddyColors();
+  buddyBx.save();
+  buddyBx.shadowBlur=0; // sin glow – el encanto viene del diseño
+  const yOff = BSPR_Y + buddyBobB;
+  for(let row=0;row<16;row++){
+    for(let col=0;col<12;col++){
+      const v=frame[row][col]; if(!v) continue;
+      buddyBx.fillStyle=C[v]||'#f0c030';
+      buddyBx.fillRect(col*BSCALE, yOff+row*BSCALE, BSCALE, BSCALE);
+    }
+  }
+  buddyBx.restore();
+  // Zzz al dormir
+  if(buddyCurFrame==='sleep'){
+    buddyBx.font='bold 9px monospace';
+    for(let i=0;i<3;i++){
+      const ph=buddyT*.028-i*.85;
+      const a=Math.max(0,Math.sin(ph))*.9; if(a<.05) continue;
+      const y=BSPR_Y-4-i*7-(ph%Math.PI)*4; if(y<1) continue;
+      buddyBx.globalAlpha=a;
+      buddyBx.fillStyle=`rgb(${AQ_R},${AQ_G},${AQ_B})`;
+      buddyBx.fillText('z',54+i*7,Math.max(3,y));
+    }
+    buddyBx.globalAlpha=1;
+  }
+}
+
+function _buddyTick(){
+  if(!buddyOpen||!buddyBx) return;
+  buddyT++;
+  // Sincroniza con estado de la esfera principal
+  if(mode!==buddyPrevMode){
+    buddyPrevMode=mode;
+    if(mode==='listening'){ buddyCurFrame='listen'; _buddySpeech('Te escucho...'); }
+    else if(mode==='responding'){ buddyCurFrame='happy'; }
+    else { buddyCurFrame='idle'; }
+  }
+  if(mode==='listening'){ buddyBobB=Math.sin(buddyT*.1)*2; }
+  else if(mode==='responding'){ buddyBobB=Math.sin(buddyT*.2)*7; }
+  else{
+    const cyc=buddyT%900;
+    if(cyc<250){ buddyCurFrame='idle'; buddyBobB=Math.sin(buddyT*.04)*2.5; }
+    else if(cyc<420){ buddyCurFrame='think'; buddyBobB=Math.sin(buddyT*.03)*1; }
+    else if(cyc<680){ buddyCurFrame='idle'; buddyBobB=Math.sin(buddyT*.04)*2.5; }
+    else{ buddyCurFrame='sleep'; buddyBobB=Math.sin(buddyT*.015)*1; }
+  }
+  buddyBx.clearRect(0,0,BCW,BCH);
+  _drawBuddySprite(BSPR[buddyCurFrame]||BSPR.idle);
+}
+
+function _buddySpeech(txt){
+  const el=document.getElementById('buddy-speech');
+  if(el) el.innerHTML=txt;
+}
+function _buddySpeechTimed(txt,ms){
+  _buddySpeech(txt);
+  if(buddySpeechTimer) clearTimeout(buddySpeechTimer);
+  buddySpeechTimer=setTimeout(()=>_buddySpeech('¿Algo más en lo que pueda ayudarte?'),ms||5000);
+}
+
+function _buddyAddMsg(text,who){
+  const log=document.getElementById('buddy-log'); if(!log) return;
+  const d=document.createElement('div'); d.className=`bchat ${who}`;
+  const lbl=document.createElement('div'); lbl.className='bsender';
+  lbl.textContent=who==='user'?'TÚ':'AIDEN';
+  const msg=document.createElement('div'); msg.textContent=text;
+  d.appendChild(lbl); d.appendChild(msg);
+  log.appendChild(d); log.scrollTop=log.scrollHeight;
+}
+
+function openBuddyMode(){
+  buddyOpen=true;
+  document.getElementById('buddy-shell').classList.add('open');
+  document.getElementById('color-panel').style.display='none';
+  document.getElementById('buddy-toggle').style.display='none';
+  if(!buddyBc){
+    buddyBc=document.getElementById('buddy-canvas');
+    buddyBc.width=BCW; buddyBc.height=BCH;
+    buddyBx=buddyBc.getContext('2d');
+    setInterval(_buddyTick,50);
+  }
+  setTimeout(drawBuddyScene, 20); // espera a que el div tenga dimensiones
+  _buddySpeech('¡Hola! Soy AIDEN.<br>¿En qué te ayudo hoy?');
+  setTimeout(()=>document.getElementById('buddy-input').focus(),80);
+}
+
+function closeBuddyMode(){
+  buddyOpen=false;
+  document.getElementById('buddy-shell').classList.remove('open');
+  document.getElementById('color-panel').style.display='';
+  document.getElementById('buddy-toggle').style.display='';
+}
+
+function buddySend(){
+  const inp=document.getElementById('buddy-input');
+  const txt=inp.value.trim(); if(!txt) return;
+  _buddyAddMsg(txt,'user');
+  inp.value='';
+  buddyCurFrame='think';
+  _buddySpeech('Pensando...');
+  appendLog(`OPR >> ${txt}`,'#ffffff');
+  if(window.backend) backend.recibir_comando(txt);
+}
+
+function buddyEnter(e){ if(e.key==='Enter') buddySend(); }
+
+// ── AIDEN MASCOT ──────────────────────────────────────────────────────────────
+function startAIDEN() {
+  const ac = document.getElementById('aiden');
+  if (!ac) return;
+  const ax = ac.getContext('2d');
+  const PS = 4, CW = 40, CH = 80, SPR_Y = 16;
+
+  // 0=transparent 1=cuerpo 2=sombra 3=ojos(tema) 4=pecho(dim)
+  const SPRITES = {
+    idle: [
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,2,1,1,1,1,2,1,1],
+      [0,1,1,2,2,2,2,1,1,0],
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,0,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,0,1,1,0,0,1,1,0,0],
+      [0,0,1,1,0,0,1,1,0,0],
+      [0,1,1,1,0,0,1,1,1,0],
+    ],
+    walk_a: [
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,2,1,1,1,1,2,1,1],
+      [0,1,1,2,2,2,2,1,1,0],
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,0,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,1,0,0,0,0,1,0,0],
+      [0,0,1,0,0,0,1,0,0,0],
+      [0,1,1,0,0,0,1,1,0,0],
+    ],
+    walk_b: [
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,2,1,1,1,1,2,1,1],
+      [0,1,1,2,2,2,2,1,1,0],
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,0,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,0,1,0,0,0,0,1,1,0],
+      [0,0,0,1,0,0,0,1,1,0],
+      [0,0,1,1,0,0,0,1,1,0],
+    ],
+    sleep: [
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,2,2,1,1,2,2,1,1],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,2,2,2,2,1,1,1],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,0,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,0,1,1,0,0,1,1,0,0],
+      [0,0,1,1,0,0,1,1,0,0],
+      [0,1,1,1,0,0,1,1,1,0],
+    ],
+    excited: [
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,3,3,3,1,1,3,3,3,1],
+      [1,1,3,3,1,1,3,3,1,1],
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,1,2,1,1,1,1,2,1,1],
+      [0,1,2,2,2,2,2,2,1,0],
+      [0,0,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,0,0,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,4,4,1,1,4,4,1,0],
+      [0,1,1,1,1,1,1,1,1,0],
+      [1,1,1,0,0,0,0,1,1,1],
+      [0,1,0,0,0,0,0,0,1,0],
+      [0,0,0,0,0,0,0,0,0,0],
+    ],
+  };
+
+  let px = 200, bob = 0, dir = 1;
+  let state = 'wander', stateT = 0, walkT = 0, zzzT = 0;
+  let targetX = 400, curFrame = 'idle', prevMode = 'idle';
+
+  function getC() {
+    const R=AQ_R, G=AQ_G, B=AQ_B;
+    return [null,'#1c2826','#0e1614',
+      `rgb(${R},${G},${B})`,
+      `rgba(${R*.5|0},${G*.5|0},${B*.5|0},1)`];
+  }
+
+  function drawSprite(frame, flip) {
+    const C = getC();
+    ax.save();
+    if (flip) { ax.translate(CW,0); ax.scale(-1,1); }
+    for (let row=0; row<16; row++) {
+      for (let col=0; col<10; col++) {
+        const v = frame[row][col];
+        if (!v) continue;
+        ax.shadowBlur = v===3 ? 9 : 0;
+        ax.shadowColor = C[3];
+        ax.fillStyle = C[v];
+        ax.fillRect(col*PS, SPR_Y+row*PS, PS, PS);
+      }
+    }
+    ax.restore();
+  }
+
+  function drawZzz(t) {
+    ax.font = 'bold 7px monospace';
+    const R=AQ_R, G=AQ_G, B=AQ_B;
+    for (let i=0; i<3; i++) {
+      const ph = t*0.03 - i*0.9;
+      const a = Math.max(0, Math.sin(ph)) * 0.85;
+      if (a < 0.05) continue;
+      const y = SPR_Y - 3 - i*6 - (ph % Math.PI)*4;
+      if (y < 1) continue;
+      ax.globalAlpha = a;
+      ax.fillStyle = `rgb(${R},${G},${B})`;
+      ax.fillText('z', 24+i*5, y);
+    }
+    ax.globalAlpha = 1;
+  }
+
+  function tick() {
+    const shell = document.getElementById('shell');
+    const maxX = shell.clientWidth - CW - 32;
+    const minX = 32;
+    stateT++;
+
+    if (mode !== prevMode) {
+      prevMode = mode;
+      if (mode === 'responding') { state='excited'; stateT=0; }
+    }
+
+    if (state === 'excited') {
+      bob = Math.sin(stateT*0.5) * 11;
+      curFrame = stateT%20<10 ? 'excited' : 'idle';
+      if (stateT > 110) { state='wander'; targetX=minX+Math.random()*(maxX-minX); stateT=0; }
+    } else if (state === 'wander') {
+      const dx = targetX - px;
+      if (Math.abs(dx) < 2) {
+        state = Math.random()<0.38 ? 'idle' : 'wander';
+        targetX = minX + Math.random()*(maxX-minX);
+        stateT = 0;
+      } else {
+        dir = dx>0 ? 1 : -1;
+        px += dir*1.4;
+        walkT++;
+        curFrame = walkT%24<12 ? 'walk_a' : 'walk_b';
+        bob = Math.sin(walkT*0.5)*1.8;
+      }
+    } else if (state === 'idle') {
+      curFrame = 'idle';
+      bob = Math.sin(stateT*0.05)*2;
+      if (stateT > 220) {
+        if (Math.random()<0.45) { state='sleeping'; zzzT=0; stateT=0; }
+        else { state='wander'; targetX=minX+Math.random()*(maxX-minX); stateT=0; }
+      }
+    } else if (state === 'sleeping') {
+      curFrame = 'sleep';
+      bob = Math.sin(stateT*0.02)*1;
+      zzzT++;
+      if (stateT > 380) { state='wander'; targetX=minX+Math.random()*(maxX-minX); stateT=0; }
+    }
+
+    px = Math.max(minX, Math.min(maxX, px));
+    ac.style.left   = Math.round(px)+'px';
+    ac.style.bottom = Math.round(180+bob)+'px';
+
+    ax.clearRect(0,0,CW,CH);
+    drawSprite(SPRITES[curFrame]||SPRITES.idle, dir<0);
+    if (state==='sleeping') drawZzz(zzzT);
+  }
+
+  const shell = document.getElementById('shell');
+  px = shell.clientWidth*0.25;
+  targetX = shell.clientWidth*0.6;
+  setInterval(tick, 50);
 }
 
 // ── QWebChannel ───────────────────────────────────────────────────────────────

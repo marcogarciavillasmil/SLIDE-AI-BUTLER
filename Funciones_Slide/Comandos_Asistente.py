@@ -16,7 +16,7 @@ import json
 
 
 captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-Cara =  cv2.imread(r"C:\Users\marco\SLIDE-AI-BUTLER\Imagenes\Marco.jpg")
+Cara = cv2.imread(os.path.join(os.path.dirname(os.path.dirname(__file__)), "Imagenes", "Marco.jpg"))
 
 def abrir_camara(): 
  cv2.namedWindow("Camara_IA",cv2.WND_PROP_FULLSCREEN) 
@@ -81,7 +81,10 @@ def Reconocimiento_Facial():
 def Abrir_Apps(Aplicacion):
    
    
-   ubicacion = pyautogui.locateOnScreen(r"C:\Users\marco\SLIDE-AI-BUTLER\Guias_Python\Buscador_Guia3.png", confidence=0.7)
+   _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+   ubicacion = pyautogui.locateOnScreen(
+       os.path.join(_base, "Guias_Python", "Buscador_Guia3.png"), confidence=0.7
+   )
 
    if ubicacion is not None:
       centrado = pyautogui.center(ubicacion)

@@ -3,4 +3,7 @@ Asistente/
 __pycache__/
 *.pyc
 *.wav
+*.mp3
 debug.log
+tareas.json
+Imagenes/
