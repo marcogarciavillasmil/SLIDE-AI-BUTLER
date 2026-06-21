@@ -1,6 +1,22 @@
-from Funciones_Slide.Funciones_Variadas import Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar, Auto_Modificacion
-from Funciones_Slide.Gestion_datos import guardar_en_json
-from Funciones_Slide.Comandos_Asistente import abrir_camara, Reconocimiento_Facial, Abrir_Apps, Abrir_Videos_Youtube, Buscar_en_Google, limpiar_historial, Salir
+from Funciones_Slide.Comunicacion.Funciones_Variadas import Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar, Auto_Modificacion
+from Funciones_Slide.Productividad.Gestion_datos import guardar_en_json
+from Funciones_Slide.Sistema.Comandos_Asistente import Abrir_Apps, Abrir_Videos_Youtube, Buscar_en_Google, Salir
+from Funciones_Slide.Sistema.Funciones_Sistema import cerrar_aplicacion, ver_apps_abiertas, clima, buscar_en_internet, leer_portapapeles, control_musica, control_volumen, estado_sistema
+from Nucleo_Slide.Memoria import recordar, olvidar
+from Funciones_Slide.Info.Vision import analizar_vision, analizar_pantalla
+from Funciones_Slide.Info.Finanzas import consultar_accion, mis_acciones
+from Funciones_Slide.Productividad.Notas import tomar_nota, leer_notas
+from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
+from Funciones_Slide.Sistema.Control_PC import dictar, abrir_carpeta, control_ventana, controlar_energia, tomar_captura, ajustar_brillo, buscar_archivo
+from Funciones_Slide.Productividad.Protocolos import activar_protocolo
+from Funciones_Slide.Info.Bitacora import resumen_actividad
+from Funciones_Slide.Sistema.Modos import modo_gaming
+from Funciones_Slide.Info.Documentos import resumir
+from Funciones_Slide.Info.Utilidades import calculadora, convertir_moneda
+from Funciones_Slide.Info.Noticias import noticias_del_dia
+from Funciones_Slide.Info.Experto import consultar_experto
+from Funciones_Slide.Info.Codigo import explicar_error
+from Nucleo_Slide.Memoria_Episodica import recordar_conversacion
 
 
 
@@ -58,30 +74,6 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "abrir_camara",
-            "description": "Abre la cámara web para tomar una foto o ver el entorno.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "Reconocimiento_Facial",
-            "description": "Activa la cámara para realizar reconocimiento facial biométrico del usuario.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "Abrir_Apps",
             "description": "Abre una aplicación instalada en la computadora (ej. Spotify, Word, Excel).",
             "parameters": {
@@ -117,7 +109,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "Buscar_en_Google",
-            "description": "Realiza una búsqueda general en internet o busca información específica en Google.",
+            "description": "ABRE el navegador con los resultados de Google para que Marco los VEA en pantalla. Úsala SOLO cuando Marco pida 'abre/muéstrame/búscame X en Google' o ver una página. NO la uses para responderle tú con datos: para eso usa buscar_en_internet.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -162,8 +154,8 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "limpiar_historial",
-            "description": "Limpia el archivo de tareas eliminando las que ya fueron completadas.",
+            "name": "Salir",
+            "description": "Apaga el sistema, se despide y cierra el asistente.",
             "parameters": {
                 "type": "object",
                 "properties": {},
@@ -174,15 +166,405 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "Salir",
-            "description": "Apaga el sistema, se despide y cierra el asistente.",
+            "name": "control_volumen",
+            "description": "Controla el volumen del sistema: subir, bajar, silenciar, desilenciar, o poner un nivel exacto (0-100). Úsala para cualquier ajuste de volumen.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "subir, bajar, silenciar, desilenciar, o un número 0-100."},
+                    "nivel": {"type": "number", "description": "Nivel exacto 0-100 (opcional, si Marco pide un número)."}
+                },
+                "required": ["accion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cerrar_aplicacion",
+            "description": "Cierra una aplicación abierta en el sistema por su nombre de proceso (ej. chrome.exe, spotify.exe).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nombre_app": {
+                        "type": "string",
+                        "description": "Nombre del proceso a cerrar (ej. 'chrome.exe', 'spotify.exe', 'discord.exe')."
+                    }
+                },
+                "required": ["nombre_app"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "ver_apps_abiertas",
+            "description": "Lista todas las aplicaciones y procesos que están corriendo actualmente en el sistema.",
             "parameters": {
                 "type": "object",
                 "properties": {},
                 "required": []
             }
         }
-    },{
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "clima",
+            "description": "Consulta el clima de una ciudad: el de AHORA o el PRONÓSTICO de los próximos días. Úsala para CUALQUIER pregunta sobre el clima (actual o futuro).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ciudad": {
+                        "type": "string",
+                        "description": "Nombre de la ciudad a consultar (ej. 'Bogota', 'Madrid', 'New York')."
+                    },
+                    "cuando": {
+                        "type": "string",
+                        "description": "'ahora' para el clima actual, o 'mañana'/'pronóstico'/'próximos días' para el pronóstico. Opcional, por defecto ahora."
+                    }
+                },
+                "required": ["ciudad"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "consultar_accion",
+            "description": "Consulta el precio actual de una acción, criptomoneda o materia prima, cuánto subió o bajó hoy, el precio objetivo de los analistas (cuántos dólares faltan para alcanzarlo) y su recomendación (comprar/mantener/vender). Úsala cuando Marco pregunte por el precio de algo: una acción (ej. NVDA, PLTR, MSTR), el oro, bitcoin, petróleo, etc.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "simbolo": {
+                        "type": "string",
+                        "description": "El símbolo o nombre del activo (ej. 'NVDA', 'PLTR', 'oro', 'bitcoin'). Para acciones usa el ticker en inglés."
+                    }
+                },
+                "required": ["simbolo"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "mis_acciones",
+            "description": "Información de las acciones de Marco: el RESUMEN de mercado (precio, cambio del día, precio objetivo y recomendación de su watchlist NVDA/CRWV/ISRG/PLTR/MSTR) y/o su PORTAFOLIO (cuántas tiene, a qué precio compró, cuánto vale hoy y cuánto gana/pierde). Úsala cuando pregunte cómo van sus acciones, su portafolio, cuánto ganó/perdió o cuánto tiene invertido.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tipo": {"type": "string", "description": "'resumen' (solo mercado de su watchlist), 'portafolio' (solo sus posiciones y ganancia/pérdida), o 'todo' (ambos). Opcional, por defecto 'todo'."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analizar_vision",
+            "description": "Usa la cámara para VER el entorno y analizarlo. Úsala cuando Marco pregunte qué ves, qué es algo que te muestra, que mires u observes algo, o pida tu opinión sobre un objeto. Identificas lo que hay y das sugerencias útiles si algo está dañado o mejorable.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "consulta": {
+                        "type": "string",
+                        "description": "Lo que Marco quiere saber sobre lo que ve la cámara (opcional, ej. 'qué le pasa a esto')."
+                    }
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "buscar_en_internet",
+            "description": "Busca en la web y te DEVUELVE EL TEXTO de los resultados para que TÚ le respondas a Marco con datos reales (NO abre el navegador). Úsala cuando Marco quiera que le DIGAS/RESPONDAS algo actual: información reciente, resultados deportivos, datos que cambian, o algo que no sabes con certeza. Si lo que pide es ABRIR la búsqueda en pantalla, usa Buscar_en_Google. No la uses para conversación casual.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "consulta": {
+                        "type": "string",
+                        "description": "Lo que se va a buscar, redactado como una búsqueda concisa (ej. 'resultado partido Real Madrid hoy')."
+                    }
+                },
+                "required": ["consulta"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "buscar_archivo",
+            "description": "Busca un archivo por su nombre en las carpetas de Marco (Descargas, Documentos, Escritorio, etc.) y abre el primero que encuentre. Úsala cuando pida buscar o encontrar un archivo, documento, foto, etc.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nombre": {"type": "string", "description": "Nombre o parte del nombre del archivo a buscar."}
+                },
+                "required": ["nombre"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "resumen_actividad",
+            "description": "Resume lo que pasó en el PC mientras Marco no estaba: las notificaciones que llegaron (mensajes de WhatsApp/Discord, correos, alertas). Úsala cuando Marco pregunte qué pasó anoche, qué se perdió, o pida el resumen de notificaciones. Al darle el resultado, RESALTA lo relevante (mensajes, correos) y omite el ruido (actualizaciones, promos).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "horas": {"type": "number", "description": "Cuántas horas hacia atrás revisar (por defecto 16). Opcional."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "controlar_energia",
+            "description": "Controla la energía del PC: apagar, reiniciar, suspender, bloquear, o cancelar un apagado programado. Puede programarse con minutos de retraso. Úsala cuando Marco pida apagar/reiniciar/bloquear/suspender el equipo.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "apagar, reiniciar, suspender, bloquear o cancelar."},
+                    "minutos": {"type": "number", "description": "Minutos de retraso para apagar/reiniciar (0 = ahora). Opcional."}
+                },
+                "required": ["accion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "tomar_captura",
+            "description": "Toma una captura de pantalla y la guarda en la carpeta Capturas. Úsala cuando Marco pida un screenshot o captura de pantalla.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "ajustar_brillo",
+            "description": "Sube, baja o fija el brillo de la pantalla. Úsala cuando Marco pida más/menos brillo o un nivel específico.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "'subir', 'bajar', o un número 0-100."}
+                },
+                "required": ["accion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "activar_protocolo",
+            "description": "Activa un PROTOCOLO (escena que cambia varias cosas a la vez), estilo Jarvis. Disponibles: 'cine' (baja brillo, sube volumen, silencia interrupciones), 'buenas noches' (silencia y deja el equipo en calma), 'concentración' (sin notificaciones para estudiar/trabajar), 'normal' (desactiva todo). Úsala cuando Marco active un modo o ambiente.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nombre": {"type": "string", "description": "cine, buenas noches, concentración, o normal."}
+                },
+                "required": ["nombre"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "modo_gaming",
+            "description": "Activa o desactiva el modo gaming: silencia las notificaciones de Windows, pausa los avisos de AIDEN, y LIBERA la VRAM de la GPU descargando los modelos de voz (para que rindan los juegos). Úsala cuando Marco diga que va a jugar, pida modo gaming / no molestar / liberar la GPU, o pida desactivarlo.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "activar": {"type": "string", "description": "'activar' para encenderlo, 'desactivar' para apagarlo."}
+                },
+                "required": ["activar"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "resumir",
+            "description": "Resume un documento (PDF/texto de Descargas, Documentos o Escritorio, por su nombre) O un video de YouTube (por su enlace) — detecta solo cuál es. Úsala cuando Marco pida resumir un archivo, trabajo, PDF, o un video de YouTube.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "fuente": {"type": "string", "description": "El nombre del archivo (ej. 'parcial') o el enlace de YouTube a resumir."}
+                },
+                "required": ["fuente"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "dictar",
+            "description": "Escribe un texto donde esté el cursor de Marco (en el campo o documento activo). Úsala cuando Marco te dicte algo para escribir: 'escribe...', 'dicta...', 'pon...' en un documento, chat o buscador.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "texto": {"type": "string", "description": "El texto a escribir."}
+                },
+                "required": ["texto"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "abrir_carpeta",
+            "description": "Abre una carpeta del computador en el explorador. Úsala cuando Marco pida abrir sus descargas, documentos, escritorio, imágenes, música o videos.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nombre": {"type": "string", "description": "Carpeta: descargas, documentos, escritorio, imagenes, musica o videos."}
+                },
+                "required": ["nombre"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "control_ventana",
+            "description": "Controla la ventana activa de Windows. Úsala cuando Marco pida minimizar, maximizar, cerrar la ventana, cambiar de ventana, o mostrar el escritorio.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "Una de: minimizar, maximizar, cerrar, cambiar, escritorio."}
+                },
+                "required": ["accion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "contestar_llamada",
+            "description": "Contesta una llamada en curso y le dice al contacto un mensaje de parte de Marco (con la voz de AIDEN). Úsala cuando Marco te pida contestar una llamada y decirle algo al que llama. IMPORTANTE: si Marco no especifica qué decir, primero PREGÚNTALE qué quiere que le diga al contacto antes de llamar esta herramienta.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mensaje": {
+                        "type": "string",
+                        "description": "Lo que se le dirá al contacto, redactado en TERCERA persona y cortés (ej. 'Marco está ocupado, le devolverá la llamada más tarde')."
+                    }
+                },
+                "required": ["mensaje"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analizar_pantalla",
+            "description": "Toma una captura de la PANTALLA del computador y la analiza. Úsala cuando Marco pregunte qué hay en su pantalla, le pida explicar un error de código, resumir un texto/artículo que tiene abierto, o ayudar con algo que está viendo en el PC.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "consulta": {
+                        "type": "string",
+                        "description": "Lo que Marco quiere saber sobre su pantalla (opcional, ej. 'qué significa este error')."
+                    }
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "leer_portapapeles",
+            "description": "Lee lo que Marco tiene copiado (portapapeles) para poder explicarlo, traducirlo o resumirlo. Úsala cuando Marco diga 'explica/traduce/resume lo que copié' o se refiera a algo que acaba de copiar.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "control_musica",
+            "description": "Controla la reproducción de música o video del sistema con las teclas multimedia. Úsala cuando Marco pida pausar, reanudar, poner play, pasar a la siguiente canción, volver a la anterior, o detener la música.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {
+                        "type": "string",
+                        "description": "Una de: pausa, play, siguiente, anterior, parar."
+                    }
+                },
+                "required": ["accion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "tomar_nota",
+            "description": "Guarda una nota rápida de Marco en su lista de notas. Úsala cuando Marco diga 'anota que...', 'apunta...', 'recuérdame esta tarea' o quiera guardar algo para después.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nota": {
+                        "type": "string",
+                        "description": "El texto de la nota a guardar."
+                    }
+                },
+                "required": ["nota"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "leer_notas",
+            "description": "Lee las notas que Marco ha guardado. Úsala cuando pregunte por sus notas, qué tenía apuntado, o su lista de pendientes.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recordar",
+            "description": "Guarda en memoria PERMANENTE un dato importante sobre Marco para recordarlo en futuras sesiones (su nombre, gustos, fechas, datos personales, preferencias). Úsala cuando Marco te pida recordar algo o cuente algo que valga la pena guardar. Si te da varias cosas, llámala una vez por cada dato.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dato": {
+                        "type": "string",
+                        "description": "El dato a recordar, redactado corto y claro (ej. 'A Marco le gusta el fútbol')."
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "description": "Categoría corta del dato (ej. 'gustos', 'estudios', 'fechas', 'hardware', 'trabajo'). Opcional."
+                    }
+                },
+                "required": ["dato"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "olvidar",
+            "description": "Borra de la memoria permanente un dato sobre Marco. Úsala cuando Marco te pida olvidar algo, que ya no es cierto, o que borres un recuerdo.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dato": {
+                        "type": "string",
+                        "description": "Palabra o frase que identifica el recuerdo a borrar (ej. 'fútbol', 'cumpleaños')."
+                    }
+                },
+                "required": ["dato"]
+            }
+        }
+    },
+    {
         "type": "function",
         "function": {
             "name": "Auto_Modificacion",
@@ -202,6 +584,101 @@ tools = [
                 "required": ["nombre_habilidad", "codigo_python"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "noticias_del_dia",
+            "description": "Trae los TITULARES de noticias más recientes (con fecha y fuente). Úsala cuando Marco pregunte qué noticias hay hoy, las novedades, o noticias de un tema/país específico (tecnología, deportes, Colombia, etc.).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tema": {"type": "string", "description": "Tema o país de las noticias (ej. 'tecnología', 'Colombia', 'fútbol'). Opcional; si no se da, trae titulares generales."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calculadora",
+            "description": "Resuelve una operación matemática EXACTA (sumas, restas, multiplicaciones, potencias, raíces, porcentajes, trigonometría). Úsala SIEMPRE que Marco pida una cuenta o cálculo numérico, en vez de calcularlo tú.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expresion": {"type": "string", "description": "La operación a resolver (ej. '(15*8+100)/2', 'raiz(144)', '200*0.15')."}
+                },
+                "required": ["expresion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "convertir_moneda",
+            "description": "Convierte dinero entre monedas con la tasa de cambio ACTUAL. Úsala cuando Marco pregunte cuánto es X en otra moneda (ej. '100 dólares a pesos', 'cuánto son 50 euros en COP').",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "cantidad": {"type": "number", "description": "La cantidad a convertir."},
+                    "desde": {"type": "string", "description": "Moneda de origen en código de 3 letras (USD, EUR, COP)."},
+                    "hacia": {"type": "string", "description": "Moneda de destino en código de 3 letras (USD, EUR, COP)."}
+                },
+                "required": ["cantidad", "desde", "hacia"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "estado_sistema",
+            "description": "Reporta el estado del PC: batería, uso de CPU, uso de RAM, uso de GPU, VRAM usada y temperatura de la GPU, e IP de red. Úsala cuando Marco pregunte cómo está el equipo, la batería, cuánta RAM/CPU/GPU/VRAM está usando, la temperatura, o su IP.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "consultar_experto",
+            "description": "Enruta una pregunta GENUINAMENTE DIFÍCIL a un modelo más potente (modo experto) y devuelve su respuesta. Úsala SOLO para razonamiento profundo, matemáticas o lógica complejas, análisis difícil, o problemas de varios pasos que requieran más capacidad de la normal. NO la uses para tareas simples, acciones, conversación, ni datos que otras herramientas ya dan (clima, precios, búsquedas, cálculos sencillos).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta": {"type": "string", "description": "La pregunta o problema difícil, con TODO el contexto necesario para resolverlo."}
+                },
+                "required": ["pregunta"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "explicar_error",
+            "description": "Explica un ERROR de programación o un traceback y dice cómo arreglarlo (para principiante). Si Marco no dicta el error, lee el que tenga COPIADO en el portapapeles. Úsala cuando Marco diga 'explícame este error', 'qué significa este error', 'por qué me sale este error' o pida ayuda con un error de código. (Si el error está EN PANTALLA y no copiado, usa analizar_pantalla.)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string", "description": "El texto del error o traceback. Opcional: si se omite, se lee del portapapeles."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recordar_conversacion",
+            "description": "Busca en el HISTORIAL de conversaciones pasadas con Marco lo que ya hablaron. Úsala cuando Marco pregunte qué hablaron antes, qué te contó/le dijiste, '¿te acuerdas cuando...?', '¿de qué hablamos ayer?', o pida recordar una charla anterior. Devuelve los intercambios para que los relates con tu estilo.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tema": {"type": "string", "description": "Tema o palabra clave de lo que se habló (ej. 'fútbol', 'parcial', 'discord'). Opcional: si se omite, trae las conversaciones más recientes."},
+                    "dias": {"type": "number", "description": "Limita la búsqueda a los últimos N días (ej. 1 = ayer/hoy). Opcional."}
+                },
+                "required": []
+            }
+        }
     }
 ]
 
@@ -209,13 +686,44 @@ tools_map = {
     "Enviar_mensaje_Whatsapp": Enviar_mensaje_Whatsapp,
     "llamada_whatsapp": llamada_whatsapp,
     "colgar": colgar,
-    "abrir_camara": abrir_camara,
-    "Reconocimiento_Facial": Reconocimiento_Facial,
     "Abrir_Apps": Abrir_Apps,
     "Abrir_Videos_Youtube": Abrir_Videos_Youtube,
     "Buscar_en_Google": Buscar_en_Google,
     "guardar_en_json": guardar_en_json,
-    "limpiar_historial": limpiar_historial,
     "Salir": Salir,
     "Auto_Modificacion": Auto_Modificacion,
+    "control_volumen": control_volumen,
+    "cerrar_aplicacion": cerrar_aplicacion,
+    "ver_apps_abiertas": ver_apps_abiertas,
+    "clima": clima,
+    "buscar_en_internet": buscar_en_internet,
+    "analizar_vision": analizar_vision,
+    "analizar_pantalla": analizar_pantalla,
+    "leer_portapapeles": leer_portapapeles,
+    "control_musica": control_musica,
+    "tomar_nota": tomar_nota,
+    "leer_notas": leer_notas,
+    "contestar_llamada": contestar_llamada,
+    "dictar": dictar,
+    "abrir_carpeta": abrir_carpeta,
+    "control_ventana": control_ventana,
+    "resumen_actividad": resumen_actividad,
+    "buscar_archivo": buscar_archivo,
+    "controlar_energia": controlar_energia,
+    "tomar_captura": tomar_captura,
+    "ajustar_brillo": ajustar_brillo,
+    "activar_protocolo": activar_protocolo,
+    "modo_gaming": modo_gaming,
+    "resumir": resumir,
+    "consultar_accion": consultar_accion,
+    "mis_acciones": mis_acciones,
+    "recordar": recordar,
+    "olvidar": olvidar,
+    "noticias_del_dia": noticias_del_dia,
+    "calculadora": calculadora,
+    "convertir_moneda": convertir_moneda,
+    "estado_sistema": estado_sistema,
+    "consultar_experto": consultar_experto,
+    "explicar_error": explicar_error,
+    "recordar_conversacion": recordar_conversacion,
 }

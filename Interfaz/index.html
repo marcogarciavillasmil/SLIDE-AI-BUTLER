@@ -39,14 +39,14 @@ body,html{
   box-shadow:0 0 40px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.06),inset 0 0 40px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.03);
 }
 .shell.responding{
-  border-color:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.42);
-  box-shadow:0 0 60px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.10),inset 0 0 60px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.05);
+  border-color:rgba(var(--aq-r),var(--aq-g),var(--aq-b),.38);
+  box-shadow:0 0 80px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.07),inset 0 0 70px rgba(var(--aq-r),var(--aq-g),var(--aq-b),.035);
 }
-.cc{position:absolute;width:26px;height:26px;border-color:var(--aq);border-style:solid;opacity:.35}
-.cc-tl{top:13px;left:13px;border-width:1.5px 0 0 1.5px;border-radius:3px 0 0 0}
-.cc-tr{top:13px;right:13px;border-width:1.5px 1.5px 0 0;border-radius:0 3px 0 0}
-.cc-bl{bottom:13px;left:13px;border-width:0 0 1.5px 1.5px;border-radius:0 0 0 3px}
-.cc-br{bottom:13px;right:13px;border-width:0 1.5px 1.5px 0;border-radius:0 0 3px 0}
+.cc{position:absolute;width:28px;height:28px;border-color:var(--aq);border-style:solid;opacity:.4}
+.cc-tl{top:18px;left:18px;border-width:1.5px 0 0 1.5px;border-radius:6px 0 0 0}
+.cc-tr{top:18px;right:18px;border-width:1.5px 1.5px 0 0;border-radius:0 6px 0 0}
+.cc-bl{bottom:18px;left:18px;border-width:0 0 1.5px 1.5px;border-radius:0 0 0 6px}
+.cc-br{bottom:18px;right:18px;border-width:0 1.5px 1.5px 0;border-radius:0 0 6px 0}
 .scan{position:absolute;left:0;width:100%;height:1px;
   background:linear-gradient(to right,transparent,var(--aq),transparent);
   opacity:.08;animation:scan 12s linear infinite;pointer-events:none;z-index:2}
@@ -69,7 +69,8 @@ body,html{
 .sdot.on{background:var(--aq);box-shadow:0 0 8px var(--aq);animation:sp .7s ease-in-out infinite}
 @keyframes sp{0%,100%{opacity:.55}50%{opacity:1}}
 .sphere-wrap{
-  flex:1;display:flex;align-items:center;justify-content:center;
+  flex:1;width:100%;align-self:stretch;
+  display:flex;align-items:center;justify-content:center;
   position:relative;cursor:pointer;z-index:5;
 }
 #main-canvas{display:block}
@@ -474,12 +475,18 @@ document.addEventListener('click', () =>
     tp += .013;
   }
   const pid = setInterval(preFrame, 16);
+  // Vista rápida: abrir index.html?preview salta el preloader y fuerza el modo activo.
+  // Inerte en el arranque normal del asistente (sin ?preview no hace nada).
+  const _preview = location.search.includes('preview');
   window.addEventListener('load', () => {
     setTimeout(() => {
       const pl = document.getElementById('preloader');
       pl.style.opacity = '0';
-      setTimeout(() => { clearInterval(pid); pl.remove(); bootMain(); }, 800);
-    }, 3000);
+      setTimeout(() => {
+        clearInterval(pid); pl.remove(); bootMain();
+        if (_preview) { setEstado('activo'); clearTimeout(respondTimer); }
+      }, 800);
+    }, _preview ? 200 : 3000);
   });
 })();
 
@@ -500,6 +507,9 @@ let frameTime    = 0;
 let speedMul     = 1.0;
 let mode         = 'idle';
 
+// Telemetría real en vivo (FPS + tiempo de sesión)
+let _fps = 0, _fpsFrames = 0, _fpsLast = performance.now(), _sessT0 = performance.now();
+
 // Timers de estado (gestionados 100% en JS)
 let listenTimer  = null;   // si pasan 9s en listening → vuelve a idle
 let respondTimer = null;   // si pasan 30s en responding → vuelve a idle
@@ -507,6 +517,9 @@ let respondTimer = null;   // si pasan 30s en responding → vuelve a idle
 // Efecto de voz: intensidad interpolada (0–1) y fase de onda
 let speakIntensity = 0.0;
 let speakPulse     = 0.0;
+
+// Amplitud REAL del audio de Kokoro (empujada desde Python en tiempo real)
+let voiceTarget = 0.0, voiceLevel = 0.0, _voiceLastT = 0;
 
 const N_SPHERE = 290, N_AMB = 200, N_STARS = 220, N_HEX = 32, N_BARS = 36;
 const sPts = [], ambPts = [], stars = [], hexPts = [], rings = [];
@@ -569,19 +582,34 @@ function loop() {
   requestAnimationFrame(loop);
   MX.clearRect(0, 0, MW, MH);
 
-  const tgtSpd = mode==='idle' ? 1.0 : mode==='listening' ? 1.9 : 3.2;
-  speedMul += (tgtSpd - speedMul) * .038;
+  const tgtSpd = mode==='idle' ? 1.0 : mode==='listening' ? 1.9 : 1.45;
+  speedMul += (tgtSpd - speedMul) * .028;
 
   frameTime += .016 * speedMul;
   const FT = frameTime;
 
   // speakIntensity: sube a 1 cuando responding, baja a 0 en otros modos
   const tgtIntensity = mode === 'responding' ? 1.0 : 0.0;
-  speakIntensity += (tgtIntensity - speakIntensity) * .045;
-  speakPulse += .065 * speedMul;
+  speakIntensity += (tgtIntensity - speakIntensity) * .028;
+  speakPulse += .045 * speedMul;
+
+  // Nivel de voz real: si Python deja de enviar (>220ms), decae para no quedar pegado
+  if (performance.now() - _voiceLastT > 220) voiceTarget *= .80;
+  voiceLevel += (voiceTarget - voiceLevel) * .45;
+  // Empuje de deformación: la amplitud real manda; piso leve al estar respondiendo
+  const voiceDrive = Math.max(speakIntensity * .12, voiceLevel);
+
+  // FPS real (se recalcula cada 500ms)
+  _fpsFrames++;
+  const _nowMs = performance.now();
+  if (_nowMs - _fpsLast >= 500) {
+    _fps = Math.round(_fpsFrames * 1000 / (_nowMs - _fpsLast));
+    _fpsFrames = 0; _fpsLast = _nowMs;
+  }
 
   const sScale = mode==='idle' ? 1.45 : mode==='listening' ? 1.58 : 1.68;
-  const SR = Math.min(MW, MH) * .27 * sScale;
+  // El orbe entero crece/encoge con la amplitud real de la voz (efecto claro)
+  const SR = Math.min(MW, MH) * .21 * sScale * (1 + voiceLevel * 0.18);
 
   // color activo
   const R = AQ_R, G = AQ_G, B = AQ_B;
@@ -638,12 +666,12 @@ function loop() {
     // siguiendo una onda sinusoidal que viaja desde el ecuador hacia los polos,
     // creando una deformación visible y orgánica que simula vibración de voz.
     // La onda tiene 3 frecuencias superpuestas para que no sea monótona.
-    if (speakIntensity > 0.01) {
+    if (voiceDrive > 0.01) {
       const lat   = p.cph;                              // latitud del punto (−1 a 1)
-      const wave  = Math.sin(speakPulse * 4.5 + lat * 6.0 + p.voicePh) * .13
-                  + Math.sin(speakPulse * 2.8 + lat * 3.5 + p.voicePh * 1.3) * .07
-                  + Math.sin(speakPulse * 7.1 + lat * 9.0 + p.voicePh * .7)  * .04;
-      nAmp += wave * speakIntensity;
+      const wave  = Math.sin(speakPulse * 1.7 + lat * 3.8 + p.voicePh) * .12
+                  + Math.sin(speakPulse * 1.1 + lat * 2.2 + p.voicePh * 1.3) * .06
+                  + Math.sin(speakPulse * 2.5 + lat * 5.2 + p.voicePh * .7)  * .03;
+      nAmp += wave * voiceDrive;
     }
 
     const rr = SR * (1 + Math.sin(FT * p.nFreq + p.nOff) * nAmp);
@@ -655,7 +683,7 @@ function loop() {
     const sc = (sz+2)/3;
     o.x = MCX+sx*rr*sc; o.y = MCY+sy*rr*sc; o.z = sz; o.sc = sc;
     // Tamaño del punto también pulsa levemente con la voz
-    const vBoost = speakIntensity * Math.max(0, Math.sin(speakPulse*3.1+p.voicePh)) * .5;
+    const vBoost = voiceDrive * Math.max(0, Math.sin(speakPulse*1.5+p.voicePh)) * .45;
     o.r     = p.dotR * (1 + sc*(mode==='idle'?1.6:2.2) + vBoost);
     o.light = p.light;
   }
@@ -679,7 +707,7 @@ function loop() {
   // ── 6. DOTS — bloom + sharp ───────────────────────────────────────────────
   MX.save();
   MX.filter      = 'blur(6px)';
-  MX.globalAlpha = mode==='idle' ? .15 : .28 + speakIntensity*.12;
+  MX.globalAlpha = mode==='idle' ? .15 : .28 + voiceDrive*.2;
   MX.fillStyle   = aqMain;
   MX.beginPath();
   for (let i = 0; i < N_SPHERE; i++) {
@@ -705,29 +733,29 @@ function loop() {
   // ── 7. EFECTO DE VOZ VISIBLE — anillos respirantes ────────────────────────
   // 4 anillos que se expanden y contraen de forma asimétrica mientras habla.
   // Claramente diferente al idle. Sube y baja con speakIntensity.
-  if (speakIntensity > 0.01) {
-    for (let k = 0; k < 4; k++) {
-      const freq    = 1.6 + k * .9;
-      const phase   = k * (TAU / 4);
+  if (voiceDrive > 0.01) {
+    for (let k = 0; k < 3; k++) {
+      const freq    = .8 + k * .5;
+      const phase   = k * (TAU / 3);
       const breathe = Math.sin(speakPulse * freq + phase);
-      const ringR   = SR * (1.12 + k * .08) + breathe * speakIntensity * 18;
-      const alpha   = speakIntensity * (.22 - k * .04) * (.55 + .45 * Math.abs(breathe));
+      const ringR   = SR * (1.12 + k * .09) + breathe * voiceDrive * 16;
+      const alpha   = voiceDrive * (.22 - k * .045) * (.6 + .4 * Math.abs(breathe));
       if (alpha < .01) continue;
       MX.beginPath(); MX.arc(MCX, MCY, Math.max(1, ringR), 0, TAU);
       MX.strokeStyle = aqFull(alpha);
-      MX.lineWidth   = 1.2 - k * .22;
+      MX.lineWidth   = 1.1 - k * .22;
       MX.stroke();
     }
 
-    // Puntos orbitando el ecuador de la esfera — efecto extra de voz
+    // Puntos orbitando el ecuador de la esfera — extra de voz
     const nOrbit = 6;
     for (let k = 0; k < nOrbit; k++) {
-      const ang     = (k / nOrbit) * TAU + speakPulse * .8;
-      const orbitR  = SR * 1.08 + Math.sin(speakPulse * 2.2 + k) * speakIntensity * 10;
+      const ang     = (k / nOrbit) * TAU + speakPulse * .45;
+      const orbitR  = SR * 1.08 + Math.sin(speakPulse * 1.3 + k) * voiceDrive * 9;
       const ox      = MCX + Math.cos(ang) * orbitR;
       const oy      = MCY + Math.sin(ang) * orbitR * .38;  // aplanado → parece 3D
-      const oa      = speakIntensity * .55 * (.5+.5*Math.sin(speakPulse*1.8+k*1.3));
-      MX.beginPath(); MX.arc(ox, oy, 2.5, 0, TAU);
+      const oa      = voiceDrive * .55 * (.5+.5*Math.sin(speakPulse*1.1+k*1.3));
+      MX.beginPath(); MX.arc(ox, oy, 2.3, 0, TAU);
       MX.fillStyle   = aqFull(oa); MX.fill();
     }
   }
@@ -756,6 +784,66 @@ function loop() {
     if (r.alpha<=0) { rings.splice(i,1); continue; }
     MX.beginPath(); MX.arc(MCX,MCY,r.rad,0,TAU);
     MX.strokeStyle=aqFull(r.alpha); MX.lineWidth=.8; MX.stroke();
+  }
+
+  // ── 10. HUD — composición minimalista estilo Jarvis que aprovecha el ancho ─
+  {
+    const hud = (mode==='idle' ? .75 : 1);
+
+    // (a) Anillos concéntricos que enmarcan el orbe y amplían su presencia
+    const baseR = SR * 1.30;
+    for (let k=0;k<3;k++){
+      MX.strokeStyle = aqFull((.13 - k*.035)*hud);
+      MX.lineWidth = 1;
+      MX.beginPath(); MX.arc(MCX,MCY, baseR + k*SR*.30, 0, TAU); MX.stroke();
+    }
+    // Marcas radiales que giran muy lento sobre el primer anillo
+    for (let k=0;k<4;k++){
+      const a = k*Math.PI/2 + FT*.04;
+      MX.strokeStyle = aqFull(.22*hud); MX.lineWidth = 1.4;
+      MX.beginPath();
+      MX.moveTo(MCX+Math.cos(a)*baseR, MCY+Math.sin(a)*baseR);
+      MX.lineTo(MCX+Math.cos(a)*(baseR+11), MCY+Math.sin(a)*(baseR+11));
+      MX.stroke();
+    }
+
+    // (b) Eje horizontal con hueco alrededor del orbe (usa todo el ancho)
+    const gap = baseR + SR*.45;
+    for (const [x0,x1] of [[52, MCX-gap],[MCX+gap, MW-52]]) {
+      const a=.16*hud, izq=x0<MCX;
+      const g=MX.createLinearGradient(x0,0,x1,0);
+      g.addColorStop(0,aqFull(izq?0:a)); g.addColorStop(1,aqFull(izq?a:0));
+      MX.strokeStyle=g; MX.lineWidth=1;
+      MX.beginPath(); MX.moveTo(x0,MCY); MX.lineTo(x1,MCY); MX.stroke();
+    }
+
+    // (c) Telemetría lateral — datos REALES en vivo que llenan los costados
+    const mem   = (window.performance && performance.memory)
+                    ? (performance.memory.usedJSHeapSize/1048576).toFixed(0) : '—';
+    const cores = navigator.hardwareConcurrency || '—';
+    const net   = navigator.onLine
+                    ? ((navigator.connection && navigator.connection.effectiveType)
+                        ? navigator.connection.effectiveType.toUpperCase() : 'EN LINEA')
+                    : 'SIN RED';
+    const ups   = (performance.now()-_sessT0)/1000;
+    const up    = `${String(Math.floor(ups/60)).padStart(2,'0')}:${String(Math.floor(ups%60)).padStart(2,'0')}`;
+
+    MX.font='11px "DM Mono",monospace';
+    const lh = 26, xL = 96, xR = MW-96;
+    const colL = [['RENDIMIENTO',1],[`FPS ${_fps}`,0],[`MEM ${mem} MB`,0],[`NUCLEOS ${cores}`,0]];
+    const colR = [['SESION',1],[`ACTIVO ${up}`,0],[`RED ${net}`,0],['MOTOR GEMINI',0]];
+    const baseY = MCY - lh*1.5;
+
+    // Guía vertical fina al lado de cada columna
+    MX.strokeStyle = aqFull(.18*hud); MX.lineWidth = 1;
+    MX.beginPath(); MX.moveTo(xL-14, baseY-9); MX.lineTo(xL-14, baseY+lh*3+9); MX.stroke();
+    MX.beginPath(); MX.moveTo(xR+14, baseY-9); MX.lineTo(xR+14, baseY+lh*3+9); MX.stroke();
+
+    MX.textAlign='left';
+    colL.forEach(([t,h],i)=>{ MX.fillStyle=aqFull((h?.55:.30)*hud); MX.fillText(t, xL, baseY+i*lh); });
+    MX.textAlign='right';
+    colR.forEach(([t,h],i)=>{ MX.fillStyle=aqFull((h?.55:.30)*hud); MX.fillText(t, xR, baseY+i*lh); });
+    MX.textAlign='left';
   }
 }
 
@@ -794,6 +882,13 @@ function setEstado(estado) {
   } else {
     _goIdle();
   }
+}
+
+// Llamado desde Python en tiempo real: amplitud (0–1) del audio de Kokoro mientras habla
+function setVoiceLevel(v) {
+  v = +v || 0;
+  voiceTarget = v < 0 ? 0 : (v > 1 ? 1 : v);
+  _voiceLastT = performance.now();
 }
 
 // Llamado desde Python  ← FIRMA INTACTA

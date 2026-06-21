@@ -8,22 +8,7 @@ import ast
 import threading
 import queue
 
-contactos = {
-    "TITO": "573213547181",
-    "MAMA": "573106991593",
-    "JOSHUA": "573115194605",
-    "PIXEL": "573113689898",
-    "BREINER": "573223644002",
-    "KARL": "573124268607",
-    "JULIAN": "573192320594",
-    "HERMANA": "573113890459",
-    "WALDO": "573003258008",
-    "TAILTWO": "573025596995",
-    "ALONSO": "573223087219",
-    "LUNA": "573133398274",
-    "CAMILO": "573229524240",
-    "Sofia":"573102014615"
-}
+from secretos import CONTACTOS as contactos   # los telefonos viven en secretos.py (fuera de git)
 
 def Enviar_mensaje_Whatsapp(nombre_contacto,mensaje):
     nombre_limpio= nombre_contacto.strip().upper()
@@ -47,6 +32,7 @@ def colgar():
     pyautogui.click()
     pyautogui.press("tab",presses=7,interval=0.1)
     pyautogui.press("enter")
+    return "Llamada finalizada, señor"
 
     
 def llamada_whatsapp(nombre_contacto):
@@ -64,32 +50,28 @@ def llamada_whatsapp(nombre_contacto):
         time.sleep(1)
         pyautogui.moveTo(1550,160)
         pyautogui.click()
-        
-        #time.sleep(4)
-def Auto_Modificacion (nombre_habilidad,codigo_python):
-
-
+        return f"Llamando a {nombre_contacto}, señor"
+    else:
+        return "Ese contacto no está registrado, señor"
+def Auto_Modificacion(nombre_habilidad, codigo_python):
     try:
-     compile(codigo_python, '<string>', 'exec')
+        compile(codigo_python, '<string>', 'exec')
     except SyntaxError as e:
-       print(f"❌ La IA escribió código con mala sintaxis: {e}")
-        
-       return f"Error de sintaxis: {e}. Revisa las comillas, indentación o caracteres extraños. No guardé el código, corrígelo e inténtalo de nuevo."
-
+        print(f"Sintaxis invalida: {e}")
+        return f"Error de sintaxis: {e}. No guardé el código, corrígelo e inténtalo de nuevo."
 
     try:
-     with open ("Auto_Programacion.py","a",encoding="utf-8") as auto_progra:
-
-
-        auto_progra.write(f"\n\n# --- Habilidad: {nombre_habilidad} ---\n")
-        auto_progra.write(codigo_python)
+        # Escribimos en el MISMO archivo que luego recargamos (su ruta real).
+        ruta = Auto_Programacion.__file__
+        with open(ruta, "a", encoding="utf-8") as auto_progra:
+            auto_progra.write(f"\n\n# --- Habilidad: {nombre_habilidad} ---\n")
+            auto_progra.write(codigo_python + "\n")
+        # El reload va FUERA del with, ya con el archivo cerrado y guardado.
         importlib.reload(Auto_Programacion)
-
         print("Habilidad creada exitosamente")
-        return f"Señor, se programo correctamente la habilidad: {nombre_habilidad}"
+        return f"Señor, programé la habilidad: {nombre_habilidad}"
     except Exception as e:
-        
         print(f"ERROR al cargar el nuevo código: {e}")
-        return f"El codigo tiene un error de logica: {e}, revisa la logica y genera una nueva version"
+        return f"El código tiene un error de lógica: {e}, genera una nueva versión."
 
 

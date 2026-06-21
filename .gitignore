@@ -1,4 +1,5 @@
 Asistente/
+Asistente_Slide_311/
 .claude/
 __pycache__/
 *.pyc
@@ -6,4 +7,11 @@ __pycache__/
 *.mp3
 debug.log
 tareas.json
+memoria.json
+memoria_episodica.json
+AIDEN_log.txt
+secretos.py
+notas.txt
+Vigilancia/
+Capturas/
 Imagenes/

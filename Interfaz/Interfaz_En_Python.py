@@ -9,6 +9,8 @@ from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtCore import QTimer, QEventLoop
 
 
+from Voz_Slide.Herramientas_del_asistente import set_voz_callback
+
 _funcion_texto_externa = None
 _funcion_voz_externa = None
 
@@ -61,6 +63,8 @@ class BackendBridge(QObject):
 class SlideHUD(QMainWindow):
     senal_texto = Signal(str, str)
     senal_estado = Signal(str)
+    senal_voz = Signal(float)
+    pedir_mostrar = Signal()   # always-on: pedir mostrar la ventana desde otro hilo
 
     def __init__(self):
         super().__init__()
@@ -80,8 +84,9 @@ class SlideHUD(QMainWindow):
         
         # Ruta del audio corregida
         ruta_audio = os.path.join(base_dir, "startup.mp3")
-        self.player.setSource(QUrl.fromLocalFile(ruta_audio))
-        self.player.play()
+        if os.path.exists(ruta_audio):
+            self.player.setSource(QUrl.fromLocalFile(ruta_audio))
+            self.player.play()
         # --------------------------------------------------
 
         self.browser = QWebEngineView(self)
@@ -108,6 +113,17 @@ class SlideHUD(QMainWindow):
 
         self.senal_texto.connect(self._ejecutar_js_texto)
         self.senal_estado.connect(self._ejecutar_js_estado)
+        self.senal_voz.connect(self._ejecutar_js_voz)
+        # La esfera imitará la amplitud real del audio de Kokoro
+        set_voz_callback(self.enviar_nivel_voz)
+
+        # ── Always-on ────────────────────────────────────────────────────────
+        # modo_persistente: si es True, cerrar la ventana NO la destruye (la oculta)
+        # y avisa por al_ocultar, para que el cerebro vuelva a REPOSO. Por defecto
+        # False => Main.py se comporta igual que siempre (cerrar = destruir).
+        self.modo_persistente = False
+        self.al_ocultar = None
+        self.pedir_mostrar.connect(self._mostrar_persistente)
 
         self.temporizador = QTimer(self)
 
@@ -141,18 +157,61 @@ class SlideHUD(QMainWindow):
 
     def _ejecutar_js_texto(self, texto, color):
         self.browser.page().runJavaScript(f"appendLog('{texto}', '{color}');")
-        self.mostrar_interfaz(True)  
-        self.temporizador.start(30000)
+        self.mostrar_interfaz(True)
+        self.temporizador.start(60000)
 
     def _ejecutar_js_estado(self, estado):
         self.browser.page().runJavaScript(f"setEstado('{estado}');")
+        self.temporizador.start(60000)
+
+    def enviar_nivel_voz(self, nivel):
+        try:
+            self.senal_voz.emit(float(nivel))
+        except RuntimeError:
+            pass
+
+    def _ejecutar_js_voz(self, nivel):
+        self.browser.page().runJavaScript(f"setVoiceLevel({nivel});")
+        self.temporizador.start(60000)   # mientras AIDEN habla, no se cierra la ventana
     def mostrar_interfaz(self, mostrar: bool):
         comando_js = "toggleInterfaz(true);" if mostrar else "toggleInterfaz(false);"
         self.browser.page().runJavaScript(comando_js)
     def cerrar_interfaz_por_completo(self):
-        
+
         self.temporizador.stop()   # 1)Apagado de reloj, soluciona el bug de autodestruccion
         self.close()               # 2)Funcion cerrar ventana
+
+    def _mostrar_persistente(self):
+        # Always-on: muestra la ventana desde el hilo principal y reinicia el timer
+        # de inactividad (60s). Se llama por la señal pedir_mostrar (thread-safe).
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        try:
+            self.mostrar_interfaz(True)
+        except Exception:
+            pass
+        self.temporizador.start(60000)
+
+    def closeEvent(self, event):
+        # En modo always-on (persistente), cerrar NO destruye la ventana: la oculta
+        # y avisa (al_ocultar) para que el cerebro vuelva a REPOSO. En modo normal
+        # (Main.py) se comporta como siempre (deja que la ventana se cierre/destruya).
+        if getattr(self, 'modo_persistente', False):
+            event.ignore()
+            self.temporizador.stop()
+            self.hide()
+            try:
+                self.mostrar_interfaz(False)
+            except Exception:
+                pass
+            if self.al_ocultar:
+                try:
+                    self.al_ocultar()
+                except Exception:
+                    pass
+        else:
+            super().closeEvent(event)
 
    
 

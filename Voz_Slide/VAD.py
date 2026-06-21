@@ -8,7 +8,7 @@ from Voz_Slide.Herramientas_del_asistente import buscar_microfono
 import time
 from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 
-palabras = ["DESPIERTA","SLIDE","SLIGHT","OYE","ACTIVATE","PAPA ESTA EN CASA","TE NECESITO","PAPA ESTA EN CAZA"]
+palabras = ["DESPIERTA","SLIDE","SLIGHT","OYE","ACTIVATE","PAPA ESTA EN CASA","TE NECESITO","PAPA ESTA EN CAZA","AIDEN","EIDEN","AYDEN","HEY DEN"]
 
 microfono =  buscar_microfono()
 print(microfono)
@@ -31,10 +31,13 @@ modelo_rapido = WhisperModel("medium",device="cpu",compute_type="int8")
 
 Formato=pyaudio.paInt16
 Muestreo=16000
-Canales=1
-Chunk=512 
+Chunk=512
 
 pyaudio_=pyaudio.PyAudio()
+_info = pyaudio_.get_device_info_by_index(microfono)
+Canales = min(int(_info["maxInputChannels"]), 2)
+if Canales < 1:
+    Canales = 1
 
 stream = pyaudio_.open(format=Formato,channels=Canales,rate=Muestreo,input=True,frames_per_buffer=Chunk,input_device_index=microfono)
 
@@ -61,7 +64,9 @@ def Reconocimiento_de_habla():
       data = stream.read(Chunk,exception_on_overflow=False)
      
 
-      chunk_numpy = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0 #Ahi se convierten datos a numpy
+      chunk_numpy = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0
+      if Canales > 1:
+          chunk_numpy = chunk_numpy.reshape(-1, Canales).mean(axis=1)
       torch_datos = torch.from_numpy(chunk_numpy)# aqui a torch, q es un lenguaje que las IAS entienden 
  
       probabilidad = modelo(torch_datos,16000).item()
