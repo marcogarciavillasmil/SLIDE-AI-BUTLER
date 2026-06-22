@@ -1,7 +1,7 @@
 # Control de AIDEN desde el celular (Telegram)
 
 AIDEN puede recibir órdenes desde tu teléfono por Telegram: le escribes a un bot y él
-ejecuta la orden en el PC y te responde. Usa el mismo cerebro y las mismas 44 herramientas.
+ejecuta la orden en el PC y te responde. Usa el mismo cerebro y las mismas 43 herramientas.
 
 > **IMPORTANTE:** el control por Telegram arranca al ENCENDER AIDEN, **sin necesidad de pasar
 > el reconocimiento facial ni la palabra clave**. O sea: con el PC prendido (y el auto-arranque),

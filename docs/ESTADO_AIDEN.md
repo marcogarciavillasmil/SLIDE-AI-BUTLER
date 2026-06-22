@@ -3,12 +3,17 @@
 Asistente de voz personal (tipo Jarvis) de Marco, en Python. Este documento resume TODO
 lo construido, cómo funciona y qué queda pendiente. Sirve de memoria del proyecto.
 
+> 🗺️ Punto de entrada y mapa de TODA la documentación: [SINTESIS_SESION.md](SINTESIS_SESION.md).
+> Detalle por tema: [ARQUITECTURA_AIDEN.md](ARQUITECTURA_AIDEN.md) · [HERRAMIENTAS_AIDEN.md](HERRAMIENTAS_AIDEN.md) ·
+> [DECISIONES_Y_FILOSOFIA.md](DECISIONES_Y_FILOSOFIA.md) · [BUGS_ARREGLADOS.md](BUGS_ARREGLADOS.md) ·
+> [ENTORNO_Y_ARRANQUE.md](ENTORNO_Y_ARRANQUE.md).
+
 ---
 
 ## Cómo se ejecuta
-- Por el **ícono de AIDEN** en el escritorio, o corriendo **`Main.py`** (nunca un archivo suelto).
+- **Real (always-on)**: `AIDEN.bat` → `Main_AlwaysOn.py` (Qt siempre vivo + icono en bandeja). Fallback: `python Main.py`. Nunca un archivo suelto.
 - Entorno virtual: **`Asistente_Slide_311`**.
-- Flujo: login facial → palabra clave → interfaz (esfera) → conversación por voz/texto.
+- Flujo: instancia única → Telegram → login facial → palabra clave → interfaz (esfera) → conversación por voz/texto.
 
 ## Entorno / hardware (lo que costó configurar)
 - GPU **RTX 5050 (Blackwell, sm_120)** → requiere **torch 2.11.0+cu128** y **torchaudio 2.11.0+cu128**.
@@ -20,9 +25,9 @@ lo construido, cómo funciona y qué queda pendiente. Sirve de memoria del proye
 - Datos privados en **`secretos.py`** (fuera de git): `OPENROUTER_API_KEY`, `CONTACTOS`, `PORTAFOLIO`, `DISPOSITIVO_LLAMADA`.
 
 ## Arquitectura (paquetes)
-- **Nucleo_Slide/**: `Cerebro.py` (LLM + function calling + system prompt), `configuracion_del_agente.py` (las 37 herramientas), `Memoria.py`, `Auto_Programacion.py`.
+- **Nucleo_Slide/**: `Cerebro.py` (LLM + function calling + system prompt), `configuracion_del_agente.py` (las **43 herramientas**), `Memoria.py` (datos), `Memoria_Episodica.py` (conversaciones), `Auto_Programacion.py`.
 - **Voz_Slide/**: `Herramientas_del_asistente.py` (Kokoro TTS, barge-in, candado de audio, hablar_en_dispositivo), `Transcriptor.py` (Whisper STT), `VAD.py` (palabra clave).
-- **Funciones_Slide/**: todas las herramientas (ver abajo).
+- **Funciones_Slide/**: las herramientas en 4 subpaquetes (`Comunicacion/`, `Sistema/`, `Info/`, `Productividad/`).
 - **Interfaz/**: `Interfaz_En_Python.py` (PySide6 + QWebChannel), `index.html` (esfera HUD reactiva a la voz).
 - **Main.py**: punto de entrada.
 
@@ -40,33 +45,43 @@ lo construido, cómo funciona y qué queda pendiente. Sirve de memoria del proye
 - **Control remoto desde el celular (Telegram)**: `procesar_remoto` (cerebro de texto, mismas tools)
   + `Telegram_Control.py`. Bloqueado a tu chat_id. Necesita token (ver `CONTROL_CELULAR.md`).
 - **Briefing al entrar** (hora + clima + recordatorios pendientes).
-- **Proactividad**: alertas de mercado, take-over (resumen de notificaciones), anti-maratón.
+- **Proactividad**: alertas de mercado, take-over (resumen de notificaciones), anti-maratón, y **anticipación** (8 avisos: clima, disco, GPU, RAM, internet, mercado, notas, trasnochada).
+- **Activación por presencia**: te saluda al llegar al PC (cámara + reconocimiento facial), con candados anti-molestia.
+- **Memoria episódica**: recuerda conversaciones pasadas (recall pasivo + tool `recordar_conversacion`).
+- **Fecha/hora** real inyectada en el prompt cada turno (antes AIDEN no sabía el día/hora).
+- **Wake word "AIDEN"** (responde a su propio nombre).
 - **Candado de audio**: nunca se montan dos voces a la vez.
 - **Filtro de Markdown** para que Kokoro no lea símbolos. **stdout en UTF-8** (no crashea con emojis).
 
-## Las 44 herramientas (function calling)
-**Comunicación**: Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar, contestar_llamada.
-**Apps/web**: Abrir_Apps, Abrir_Videos_Youtube, Buscar_en_Google (ABRE el navegador), buscar_en_internet (DEVUELVE texto para responder).
-**Sistema/PC**: control_volumen, cerrar_aplicacion, ver_apps_abiertas, controlar_energia (apagar/reiniciar/suspender/bloquear), tomar_captura, ajustar_brillo, buscar_archivo, control_ventana, dictar, abrir_carpeta, leer_portapapeles, control_musica, estado_sistema (batería/CPU/RAM/IP).
-**Info**: clima (actual o pronóstico de varios días), consultar_accion, resumen_acciones, mi_portafolio, resumir_documento, resumen_actividad (take-over de notificaciones), noticias_del_dia.
-**Utilidades**: calculadora (matemática exacta), convertir_moneda (tasa actual), traducir, definir (Wikipedia), resumir_youtube (transcripción de videos).
-**Visión**: analizar_vision (cámara), analizar_pantalla (pantalla).
-**Productividad**: tomar_nota, leer_notas, guardar_en_json (tareas/recordatorios).
-**Modos**: activar_protocolo (cine/buenas noches/concentración/normal), modo_gaming.
-**Memoria**: recordar, olvidar.
-**Avanzado**: Auto_Modificacion (auto-programación), Salir.
+## Las 43 herramientas (function calling)
+> Catálogo COMPLETO y al día (1 ficha por tool, con parámetros y módulo) en
+> [HERRAMIENTAS_AIDEN.md](HERRAMIENTAS_AIDEN.md). Resumen por categoría:
 
-> Nota de diseño: junio 2026 se añadieron 8 tools nuevas (37 → 45) y luego se consolidó `clima`
-> (antes `obtener_clima` + `pronostico_clima`) → quedan **44**. `obtener_clima` y `pronostico_clima`
-> siguen existiendo como funciones internas (`clima` las enruta; el briefing usa `obtener_clima`).
-> `Buscar_en_Google` (abre navegador) y `buscar_en_internet` (devuelve texto) NO se fusionaron porque
-> hacen cosas distintas; se afinaron sus descripciones. Demasiadas tools degradan el function-calling:
-> si AIDEN empieza a confundir herramientas, consolidar más.
+**Comunicación**: Enviar_mensaje_Whatsapp, llamada_whatsapp, colgar, contestar_llamada.
+**Apps/web/info**: Abrir_Apps, Abrir_Videos_Youtube, Buscar_en_Google (ABRE navegador), buscar_en_internet (DEVUELVE texto), noticias_del_dia, clima.
+**Sistema/PC**: control_volumen, cerrar_aplicacion, ver_apps_abiertas, controlar_energia, tomar_captura, ajustar_brillo, buscar_archivo, control_ventana, dictar, abrir_carpeta, leer_portapapeles, control_musica, estado_sistema, Salir.
+**Finanzas**: consultar_accion, mis_acciones (= antiguas resumen_acciones + mi_portafolio).
+**Visión/pantalla**: analizar_vision, analizar_pantalla.
+**Productividad**: tomar_nota, leer_notas, guardar_en_json, activar_protocolo, modo_gaming, resumen_actividad.
+**Resúmenes/utilidades**: resumir (= documento + YouTube), calculadora, convertir_moneda.
+**Memoria**: recordar, olvidar, recordar_conversacion.
+**Razonamiento/código**: consultar_experto, explicar_error.
+**Auto-programación**: Auto_Modificacion.
+
+> Cambios (jun 2026): **47 → 43**. Se quitaron `traducir` y `definir` (el modelo los hace inline) y se
+> fusionaron finanzas (`mis_acciones`) y resúmenes (`resumir`). Antes ya se había consolidado `clima`
+> (= obtener_clima + pronostico_clima, que siguen como funciones internas). `Buscar_en_Google` (abre
+> navegador) y `buscar_en_internet` (devuelve texto) NO se fusionaron (son distintas). Demasiadas tools
+> degradan el function-calling: si AIDEN empieza a confundir herramientas, consolidar más.
 
 ## Hilos en segundo plano (arrancan tras el login)
 - `monitor_de_tareas`: ejecuta tareas/recordatorios programados a su hora.
 - `iniciar_alertas`: avisa de movimientos fuertes (±4%) o precios objetivo de tus acciones.
 - `iniciar_guardian_descanso`: anti-maratón (tras 2h de actividad real sugiere descansar).
+- `iniciar_anticipacion`: 8 avisos proactivos (clima, disco, GPU, RAM, internet, mercado, notas, trasnochada).
+- `iniciar_presencia`: te saluda al llegar (cámara cada 25s + reconocimiento facial).
+- `iniciar_telegram`: bot de control remoto (arranca ANTES del login). El centinela de código vigila SyntaxError.
+> Todos se PAUSAN en modo gaming.
 
 ---
 

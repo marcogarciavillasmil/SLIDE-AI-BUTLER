@@ -1,8 +1,27 @@
 # Plan: AIDEN siempre encendido (always-on)
 
-> Documento de diseño. **No implementado todavía** — es el mapa para convertir AIDEN
-> de "se enciende, una sesión, se apaga" a "vive encendido y escucha siempre, gastando
-> casi nada cuando está en reposo". Escrito desde el código real de `Main.py` (junio 2026).
+> ✅ **YA IMPLEMENTADO** en `Main_AlwaysOn.py` (junio 2026). Este documento fue el PLAN original;
+> en §0 se mapea plan → realidad. Para el estado VIVO y detallado, ver
+> [ARQUITECTURA_AIDEN.md](ARQUITECTURA_AIDEN.md) §9. Se conserva el plan por su valor de diseño
+> (el porqué de cada decisión). Lo de "Main.py" abajo describe el FALLBACK; el real es Main_AlwaysOn.py.
+
+---
+
+## 0. Estado: IMPLEMENTADO (plan → realidad)
+
+Lo que este plan proponía YA se construyó en `Main_AlwaysOn.py`:
+- ✅ Qt en el hilo principal (`app.exec()` permanente) + bucle de reposo en hilo de fondo.
+- ✅ Login facial UNA sola vez + `while True` con estados REPOSO ↔ ACTIVO.
+- ✅ `closeEvent → hide()` + **icono en bandeja** (QSystemTrayIcon: "Mostrar AIDEN" / "Salir").
+- ✅ La ventana se oculta sola tras 60s → vuelve a REPOSO (vía `threading.Event`).
+- ✅ Candado de **instancia única** (socket `127.0.0.1:50607`) para no duplicar el proceso.
+- ✅ `AIDEN.bat` apunta a `Main_AlwaysOn.py`; `Main.py` queda como fallback manual.
+- ✅ Descarga de modelos en `modo_gaming` para liberar VRAM.
+- ✅ Se sumaron **presencia** (saludo al llegar) y **anticipación** como hilos de fondo.
+- 🔵 PENDIENTE a propósito (futuro, caro): activación por CONTEXTO (ASR continuo + filtro de
+  intención). No se hace porque rompería el ahorro en reposo.
+
+> Todo lo de abajo es el PLAN original (diseño y razonamiento). Se mantiene para entender el PORQUÉ.
 
 ---
 
