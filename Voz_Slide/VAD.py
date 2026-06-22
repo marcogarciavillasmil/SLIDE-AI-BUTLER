@@ -1,7 +1,7 @@
 import torch
 from collections import deque
 import numpy as np
-from Voz_Slide.Transcriptor import escuchador_de_usuario
+from Voz_Slide.Transcriptor import escuchador_de_usuario, es_alucinacion
 from faster_whisper import WhisperModel
 import pyaudio
 from Voz_Slide.Herramientas_del_asistente import buscar_microfono
@@ -81,7 +81,7 @@ def Reconocimiento_de_habla():
             
 
 
-            segmentos,_ = modelo_rapido.transcribe(frase_completa,language="es",beam_size=5)
+            segmentos,_ = modelo_rapido.transcribe(frase_completa,language="es",beam_size=5,vad_filter=True,condition_on_previous_text=False)
             texto = "".join([s.text for s in segmentos]).strip()#aqui como modelo_rapido devuelve muchas cosas, nos enfocamos en solo texto con " s.text" para despues pegar con el join todas las frases
             #que tengan ""
             texto = texto.upper()
@@ -89,6 +89,11 @@ def Reconocimiento_de_habla():
             print(texto_limpio)
 
             memoria_de_audio.clear()
+
+            # Si lo "oido" es una alucinacion de Whisper (silencio/ruido), ignorar y seguir escuchando.
+            if es_alucinacion(texto_limpio):
+                print("🛇 Alucinacion descartada (wake word/conversacion)")
+                continue
 
             if asistente_despierto == True and Tiempo_total < segundos:
                 tiempo_despierto = time.time()

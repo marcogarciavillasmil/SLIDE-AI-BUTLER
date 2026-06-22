@@ -17,6 +17,7 @@ from Funciones_Slide.Info.Noticias import noticias_del_dia
 from Funciones_Slide.Info.Experto import consultar_experto
 from Funciones_Slide.Info.Codigo import explicar_error
 from Nucleo_Slide.Memoria_Episodica import recordar_conversacion
+from Funciones_Slide.Sistema.Programador import crear_proyecto, ejecutar_proyecto
 
 
 
@@ -568,7 +569,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "Auto_Modificacion",
-            "description": "ÚSALA OBLIGATORIAMENTE cuando el usuario te ordene aprender una nueva habilidad, programar una función en Python, o automatizar una tarea. Esta herramienta es tu único método para escribir y guardar código.",
+            "description": "Hace que AIDEN APRENDA UNA HABILIDAD nueva para SÍ MISMO (una función que gana como capacidad), escrita por Claude Code y recargada en vivo. Úsala cuando Marco te ordene 'aprende a...', 'prográmate una función para...', 'automatiza...'. Corre en segundo plano y avisa al terminar. Para crear un PROYECTO o app SEPARADO usa crear_proyecto.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -576,12 +577,12 @@ tools = [
                         "type": "string",
                         "description": "El nombre de la función en Python (ej. calcular_impuestos, apagar_luces_cuarto). Debe usar guiones bajos."
                     },
-                    "codigo_python": {
+                    "instruccion": {
                         "type": "string",
-                        "description": "CÓDIGO OBLIGATORIO. Escribe el script completo. Para no romper el formato JSON, es ESTRICTAMENTE NECESARIO usar '\\n' para los saltos de línea e indentar con espacios. EJEMPLO DE FORMATO: def sumar_numeros(a, b):\\n    resultado = a + b\\n    return resultado"
+                        "description": "Qué debe hacer la habilidad, en lenguaje natural y con el detalle necesario (ej. 'calcular el IVA del 19% de un monto y devolverlo')."
                     }
                 },
-                "required": ["nombre_habilidad", "codigo_python"]
+                "required": ["nombre_habilidad", "instruccion"]
             }
         }
     },
@@ -679,6 +680,36 @@ tools = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "crear_proyecto",
+            "description": "Construye un PROYECTO o programa REAL delegando a Claude Code (escribe los archivos por ti, completos y funcionales). Usala cuando Marco pida crear/programar una app, script, juego, herramienta o proyecto entero ('creame', 'programame', 'hazme un programa que...'). Tarda: corre en SEGUNDO PLANO y AIDEN avisa al terminar. NO la uses para preguntas ni para UNA funcion simple para el propio AIDEN (eso es Auto_Modificacion).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "instruccion": {"type": "string", "description": "Que construir, en alto nivel (ej. 'una calculadora con interfaz en Python', 'un juego de la culebra')."},
+                    "nombre": {"type": "string", "description": "Nombre corto para la carpeta del proyecto. Opcional."}
+                },
+                "required": ["instruccion"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "ejecutar_proyecto",
+            "description": "Ejecuta (corre) el codigo Python de un proyecto que AIDEN ya creo y devuelve su salida. Usala cuando Marco diga 'ejecuta/corre el proyecto', 'pruebalo', 'a ver si funciona'. Por defecto corre el proyecto mas reciente.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nombre": {"type": "string", "description": "Nombre del proyecto a ejecutar. Opcional; por defecto el mas reciente."},
+                    "archivo": {"type": "string", "description": "Archivo .py especifico a correr. Opcional; por defecto main.py/app.py."}
+                },
+                "required": []
+            }
+        }
     }
 ]
 
@@ -726,4 +757,6 @@ tools_map = {
     "consultar_experto": consultar_experto,
     "explicar_error": explicar_error,
     "recordar_conversacion": recordar_conversacion,
+    "crear_proyecto": crear_proyecto,
+    "ejecutar_proyecto": ejecutar_proyecto,
 }

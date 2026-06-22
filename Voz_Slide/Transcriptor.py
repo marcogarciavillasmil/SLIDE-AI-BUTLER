@@ -45,6 +45,43 @@ microfono_encontrado = buscar_microfono()
 _calibrado = False
 
 
+# --- Guardia anti-alucinaciones de Whisper ---------------------------------
+# Cuando Whisper recibe SILENCIO o ruido (un suspiro, el ventilador, la calle) tiende a
+# "inventar" frases que vio miles de veces en subtitulos de YouTube. Estas son las mas
+# famosas en espanol. Si la transcripcion es SOLO una de estas, NO es un comando real.
+_ALUCINACIONES = (
+    "subtitulos realizados por la comunidad de amara.org",
+    "subtitulos por la comunidad de amara.org",
+    "subtitulado por la comunidad de amara.org",
+    "mas informacion www.amara.org",
+    "amara.org",
+    "subtitulos por subtitulamos.tv",
+    "gracias por ver el video",
+    "gracias por ver el vídeo",
+    "gracias por ver este video",
+    "no olvides suscribirte",
+    "suscribete al canal",
+    "dale like y suscribete",
+)
+# Frases cortas que SOLO son alucinacion si vienen solas (texto completo == esto).
+_ALUCINACIONES_EXACTAS = (
+    "suscribete", "¡suscribete!", "gracias", "¡gracias!", "gracias.", "subtitulos",
+)
+
+
+def es_alucinacion(texto):
+    """True si el texto transcrito es una alucinacion tipica de Whisper sobre silencio/ruido."""
+    if not texto:
+        return True
+    limpio = texto.strip().lower()
+    limpio = limpio.translate(str.maketrans("áéíóúü", "aeiouu"))
+    if not limpio:
+        return True
+    if limpio in _ALUCINACIONES_EXACTAS:
+        return True
+    return any(frase in limpio for frase in _ALUCINACIONES)
+
+
 def escuchador_de_usuario(timeout=15):
  global _calibrado
  try:
@@ -63,9 +100,18 @@ def escuchador_de_usuario(timeout=15):
      x.write(audio_capturar.get_wav_data())
     
    _t0 = time.perf_counter()
-   segmentos,_ = _asegurar_modelo().transcribe("archivo_temporal_voz.wav", language = "es")
+   # vad_filter: el Silero interno de faster-whisper descarta el audio SIN voz antes de
+   # transcribir -> mata casi todas las alucinaciones de silencio.
+   # condition_on_previous_text=False: evita que arrastre/repita texto fantasma.
+   segmentos,_ = _asegurar_modelo().transcribe(
+       "archivo_temporal_voz.wav", language="es",
+       vad_filter=True, condition_on_previous_text=False,
+   )
    texto = "".join([s.text for s in segmentos]).strip()
    print(f"⏱  Transcripcion (Whisper) : {time.perf_counter() - _t0:5.2f} s")
+   if es_alucinacion(texto):
+       print(f"🛇 Alucinacion descartada: {texto!r}")
+       return None
    return texto
   else:
     print("No se capturo audio...")

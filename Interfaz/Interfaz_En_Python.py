@@ -65,6 +65,8 @@ class SlideHUD(QMainWindow):
     senal_estado = Signal(str)
     senal_voz = Signal(float)
     pedir_mostrar = Signal()   # always-on: pedir mostrar la ventana desde otro hilo
+    pedir_ocultar = Signal()   # always-on: ocultar la ventana ya (comando "ocultate")
+    pedir_fijar = Signal(bool) # always-on: fijar/soltar la ventana (comando "quedate")
 
     def __init__(self):
         super().__init__()
@@ -123,7 +125,11 @@ class SlideHUD(QMainWindow):
         # False => Main.py se comporta igual que siempre (cerrar = destruir).
         self.modo_persistente = False
         self.al_ocultar = None
+        self._ms_inactividad = 120000   # 120s de inactividad antes de auto-ocultarse (always-on)
+        self._fijada = False            # si True, la ventana NO se auto-oculta (comando 'quedate')
         self.pedir_mostrar.connect(self._mostrar_persistente)
+        self.pedir_ocultar.connect(self._ocultar_persistente)
+        self.pedir_fijar.connect(self._fijar_persistente)
 
         self.temporizador = QTimer(self)
 
@@ -158,11 +164,11 @@ class SlideHUD(QMainWindow):
     def _ejecutar_js_texto(self, texto, color):
         self.browser.page().runJavaScript(f"appendLog('{texto}', '{color}');")
         self.mostrar_interfaz(True)
-        self.temporizador.start(60000)
+        self._reiniciar_timer()
 
     def _ejecutar_js_estado(self, estado):
         self.browser.page().runJavaScript(f"setEstado('{estado}');")
-        self.temporizador.start(60000)
+        self._reiniciar_timer()
 
     def enviar_nivel_voz(self, nivel):
         try:
@@ -172,7 +178,7 @@ class SlideHUD(QMainWindow):
 
     def _ejecutar_js_voz(self, nivel):
         self.browser.page().runJavaScript(f"setVoiceLevel({nivel});")
-        self.temporizador.start(60000)   # mientras AIDEN habla, no se cierra la ventana
+        self._reiniciar_timer()   # mientras AIDEN habla, no se cierra la ventana
     def mostrar_interfaz(self, mostrar: bool):
         comando_js = "toggleInterfaz(true);" if mostrar else "toggleInterfaz(false);"
         self.browser.page().runJavaScript(comando_js)
@@ -191,7 +197,25 @@ class SlideHUD(QMainWindow):
             self.mostrar_interfaz(True)
         except Exception:
             pass
-        self.temporizador.start(60000)
+        self._reiniciar_timer()
+
+    def _reiniciar_timer(self):
+        # Reinicia el contador de inactividad, salvo que la ventana este FIJADA ('quedate').
+        if not getattr(self, '_fijada', False):
+            self.temporizador.start(getattr(self, '_ms_inactividad', 120000))
+
+    def _ocultar_persistente(self):
+        # Comando 'ocultate/descansa': oculta la ventana YA y vuelve a REPOSO.
+        self._fijada = False
+        self.cerrar_interfaz_por_completo()
+
+    def _fijar_persistente(self, fijar):
+        # Comando 'quedate': True deja la ventana fija (no se auto-oculta); False la suelta.
+        self._fijada = bool(fijar)
+        if self._fijada:
+            self.temporizador.stop()
+        else:
+            self.temporizador.start(getattr(self, '_ms_inactividad', 120000))
 
     def closeEvent(self, event):
         # En modo always-on (persistente), cerrar NO destruye la ventana: la oculta

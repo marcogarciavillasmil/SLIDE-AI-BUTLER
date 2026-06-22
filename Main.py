@@ -61,6 +61,13 @@ def Procesar_Peticion(texto, ventana):
                      "anterior": "anterior", "cancion anterior": "anterior",
                      "detener": "parar", "parar": "parar", "para la musica": "parar"}
             respuesta_slide = control_musica(_mapa[texto])
+        elif any(p in texto for p in ("quédate", "quedate", "mantente", "no te ocultes")):
+            ventana.pedir_fijar.emit(True)
+            respuesta_slide = "Aquí me quedo, señor."
+        elif any(p in texto for p in ("ocúltate", "ocultate", "escóndete", "escondete", "ya descansa", "puedes descansar")):
+            ventana.pedir_fijar.emit(False)
+            ventana.pedir_ocultar.emit()
+            respuesta_slide = "Como guste, señor."
 
         elif "cambié de opinión" in texto or "ayúdame con el código" in texto or "ayudame" in texto:
             if estado_aiden["hay_error"]:

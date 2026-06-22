@@ -50,6 +50,26 @@
 
 ---
 
+### A7 — Whisper alucinaba comandos sobre el silencio (Amara.org)
+- **Archivo**: `Voz_Slide/Transcriptor.py` + `Voz_Slide/VAD.py`
+- **Síntoma**: sin que Marco dijera nada, AIDEN "oía" frases y actuaba (p. ej. se puso a buscar
+  en Google *"Subtítulos por la comunidad de Amara.org"*; también salía *"¡Suscríbete!"*).
+- **Causa raíz**: Whisper se entrenó con millones de subtítulos de YouTube, donde frases como
+  "Subtítulos por la comunidad de Amara.org" o "¡Suscríbete!" aparecen muchísimo. Ante
+  **silencio o ruido** (no audio vacío, sino casi-silencio), el modelo "rellena" con esas frases
+  fantasma en vez de devolver vacío. El cerebro las tomaba como un comando real.
+  - `escuchador_de_usuario` (conversación continua) transcribía SIN ningún filtro de voz.
+  - En `VAD.py`, tras despertar (`asistente_despierto=True`) se devolvía CUALQUIER texto de la
+    ventana de 25s, incluido el alucinado.
+- **Arreglo (2 capas)**:
+  1. `vad_filter=True` + `condition_on_previous_text=False` en las dos llamadas a `transcribe`
+     (el Silero VAD interno de faster-whisper descarta el audio sin voz real ANTES de transcribir).
+  2. Guardia `es_alucinacion(texto)` (en `Transcriptor.py`, importada también en `VAD.py`):
+     lista negra de frases fantasma conocidas; si la transcripción es solo eso, se descarta
+     (`escuchador_de_usuario` devuelve `None`; el wake-loop hace `continue`). Log `🛇 Alucinacion descartada`.
+
+---
+
 ## B. Bugs del LLM / function-calling
 
 ### B1 — `MALFORMED_FUNCTION_CALL` (el grande)
@@ -150,3 +170,5 @@
 - Verifica que un archivo exista antes de abrirlo; verifica los paths tras mover archivos.
 - Con muchas tools, vigila el `MALFORMED_FUNCTION_CALL`: el error vive en las llamadas, no en el texto.
 - Una sola instancia: candado de socket para no duplicar procesos pesados.
+- Whisper sobre silencio NO devuelve vacío: alucina frases de su entrenamiento (subtítulos de
+  YouTube). Filtra con VAD antes de transcribir y ten una lista negra de frases fantasma.
