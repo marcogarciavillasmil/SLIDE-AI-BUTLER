@@ -447,16 +447,16 @@ tools = [
         "type": "function",
         "function": {
             "name": "contestar_llamada",
-            "description": "Contesta una llamada en curso y le dice al contacto un mensaje de parte de Marco (con la voz de AIDEN). Úsala cuando Marco te pida contestar una llamada y decirle algo al que llama. IMPORTANTE: si Marco no especifica qué decir, primero PREGÚNTALE qué quiere que le diga al contacto antes de llamar esta herramienta.",
+            "description": "ACEPTA la llamada ENTRANTE que está sonando y le dice al contacto un mensaje con la voz de AIDEN. AIDEN mismo acepta la llamada; NO necesitas el nombre del contacto (es la llamada que suena ahora). Úsala cuando Marco diga 'contesta/responde/atiende la llamada'. Si Marco dijo qué decir, pásalo tal cual; si NO dijo nada, contesta igual con un mensaje cortés por defecto. NUNCA preguntes 'a quién'.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "mensaje": {
                         "type": "string",
-                        "description": "Lo que se le dirá al contacto, redactado en TERCERA persona y cortés (ej. 'Marco está ocupado, le devolverá la llamada más tarde')."
+                        "description": "Lo que se le dirá al contacto, en TERCERA persona y cortés (ej. 'Marco está ocupado, le devolverá la llamada más tarde'). Opcional: si Marco no dijo qué decir, deja vacío y se usará un mensaje cortés por defecto."
                     }
                 },
-                "required": ["mensaje"]
+                "required": []
             }
         }
     },

@@ -61,12 +61,23 @@
   - `escuchador_de_usuario` (conversación continua) transcribía SIN ningún filtro de voz.
   - En `VAD.py`, tras despertar (`asistente_despierto=True`) se devolvía CUALQUIER texto de la
     ventana de 25s, incluido el alucinado.
-- **Arreglo (2 capas)**:
-  1. `vad_filter=True` + `condition_on_previous_text=False` en las dos llamadas a `transcribe`
-     (el Silero VAD interno de faster-whisper descarta el audio sin voz real ANTES de transcribir).
-  2. Guardia `es_alucinacion(texto)` (en `Transcriptor.py`, importada también en `VAD.py`):
-     lista negra de frases fantasma conocidas; si la transcripción es solo eso, se descarta
-     (`escuchador_de_usuario` devuelve `None`; el wake-loop hace `continue`). Log `🛇 Alucinacion descartada`.
+- **Arreglo (defensa en capas, reforzado)**:
+  1. `vad_filter=True` + `condition_on_previous_text=False` + `no_speech_threshold=0.6` +
+     `log_prob_threshold=-1.0` en las dos llamadas a `transcribe` (el Silero VAD interno de
+     faster-whisper descarta el audio sin voz real ANTES de transcribir).
+  2. **Filtro por CONFIANZA del modelo** (`_texto_confiable`, en `Transcriptor.py`, usado en
+     `Transcriptor.py` y `VAD.py`): la señal más potente. Por cada segmento, Whisper reporta su
+     seguridad; se descarta el segmento si `no_speech_prob > 0.6` y `avg_logprob < -0.5`
+     (silencio disfrazado), o `avg_logprob < -1.0` (confianza pésima), o `compression_ratio > 2.4`
+     (texto en bucle tipo "gracias gracias gracias"). Umbrales conservadores para no cortar voz real.
+  3. **Lista negra** (`es_alucinacion`): ~35 frases/tokens fantasma conocidos (amara.org,
+     subtitulamos.tv, "gracias por ver", "nos vemos en el próximo", equivalentes en inglés como
+     "thank you"/"you"/"thanks", "[Música]", "[Aplausos]", URLs…) + descarte de basura de 1-2
+     caracteres, **con lista blanca** (`_VALIDAS_CORTAS`: si/no/ya/ok/va) para no matar respuestas
+     cortas legítimas. Si la transcripción es solo eso → se descarta (`escuchador_de_usuario`
+     devuelve `None`; el wake-loop hace `continue`). Log `🛇 Alucinacion descartada`.
+  - Verificado con 12 casos: alucinaciones (incluido "[Música]", "you", "...") bloqueadas;
+    comandos y respuestas cortas ("sí"/"no"/"abre spotify") intactos.
 
 ---
 

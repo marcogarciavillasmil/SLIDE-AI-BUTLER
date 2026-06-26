@@ -27,13 +27,25 @@ from Funciones_Slide.Info.Bitacora import contar_actividad
 from Funciones_Slide.Comunicacion.Telegram_Control import iniciar_telegram
 from Funciones_Slide.Productividad.Anticipacion import iniciar_anticipacion
 from Funciones_Slide.Sistema.Presencia import iniciar_presencia
+from Funciones_Slide.Comunicacion.Vigilante_Llamadas import iniciar_vigilante_llamadas, hay_llamada_activa, mensaje_de_orden
+from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
 iniciar_hilos()
 
+
+
+# --- Modo manos libres (sesión) ---------------------------------------------
+# Mic abierto: hablas sin clic ni palabra clave y AIDEN responde, hasta que digas
+# "descansa"/"modo normal" o pase un buen rato en silencio (sale solo).
+_manos_libres = False
+_silencios_manos_libres = 0
+ESPERA_MANOS_LIBRES = 20          # segundos que escucha en cada turno dentro del modo
+MAX_SILENCIOS_MANOS_LIBRES = 15   # 15 turnos x 20s = ~5 min de silencio -> sale solo (anti mic eterno)
 
 
 def Procesar_Peticion(texto, ventana):
     # El while permite el "barge-in": si AIDEN es interrumpido, volvemos a
     # escuchar al usuario de inmediato (sin repetir la palabra clave).
+    global _manos_libres, _silencios_manos_libres
     while texto and texto.strip():
         texto = texto.strip().lower()
         ya_hablado = False
@@ -61,10 +73,27 @@ def Procesar_Peticion(texto, ventana):
                      "anterior": "anterior", "cancion anterior": "anterior",
                      "detener": "parar", "parar": "parar", "para la musica": "parar"}
             respuesta_slide = control_musica(_mapa[texto])
-        elif any(p in texto for p in ("quédate", "quedate", "mantente", "no te ocultes")):
+        elif any(p in texto for p in ("contesta", "responde", "atiende", "contestar")) and hay_llamada_activa():
+            # Hay una llamada SONANDO y Marco pide contestar: acepta + dice el mensaje (SIN LLM).
+            respuesta_slide = contestar_llamada(mensaje_de_orden(texto))
+        elif any(p in texto for p in ("quédate", "quedate", "mantente", "no te ocultes", "no te vayas", "no te escondas")):
             ventana.pedir_fijar.emit(True)
             respuesta_slide = "Aquí me quedo, señor."
-        elif any(p in texto for p in ("ocúltate", "ocultate", "escóndete", "escondete", "ya descansa", "puedes descansar")):
+        elif any(p in texto for p in ("manos libres", "modo conversacion", "modo conversación",
+                                      "escucha continua", "escúchame", "escuchame")):
+            _manos_libres = True
+            _silencios_manos_libres = 0
+            respuesta_slide = ("Modo manos libres activado, señor. Le escucho sin que tenga que "
+                               "despertarme; dígame 'modo normal' o 'descansa' para parar.")
+        elif any(p in texto for p in ("modo normal", "desactiva manos libres",
+                                      "sal del modo manos libres", "deja de escuchar")):
+            _manos_libres = False
+            _silencios_manos_libres = 0
+            respuesta_slide = "Modo manos libres desactivado, señor. Volveré a esperar la palabra clave."
+        elif any(p in texto for p in ("descansa", "descansar", "ocúltate", "ocultate", "ocultar",
+                                      "escóndete", "escondete", "esconder", "duerme", "duérmete",
+                                      "duermete", "a dormir", "ve a dormir", "puedes irte", "retírate", "retirate")):
+            _manos_libres = False
             ventana.pedir_fijar.emit(False)
             ventana.pedir_ocultar.emit()
             respuesta_slide = "Como guste, señor."
@@ -99,11 +128,33 @@ def Procesar_Peticion(texto, ventana):
             print(f"USER (Voz): {texto}")
             continue                          # y lo procesa en la siguiente vuelta
 
-        # Conversación continua: ventana corta para un follow-up sin repetir la palabra clave.
-        ventana.enviar_texto_a_html("AIDEN >> (sigo aquí, señor...)", "#00ffcc")
-        seguimiento = escuchador_de_usuario(timeout=5)   # 5s para que sigas hablando
-        if seguimiento and seguimiento.strip():
-            texto = seguimiento
+        # Conversación continua / manos libres: escucha el siguiente turno sin palabra clave.
+        siguiente = None
+        while True:
+            if _manos_libres:
+                ventana.enviar_texto_a_html("AIDEN >> (manos libres: le escucho, señor...)", "#00ffcc")
+                cap = escuchador_de_usuario(timeout=ESPERA_MANOS_LIBRES)
+            else:
+                ventana.enviar_texto_a_html("AIDEN >> (sigo aquí, señor...)", "#00ffcc")
+                cap = escuchador_de_usuario(timeout=5)   # 5s para que sigas hablando
+
+            if cap and cap.strip():
+                _silencios_manos_libres = 0
+                siguiente = cap
+                break
+
+            # No se captó nada en la ventana de escucha.
+            if _manos_libres:
+                _silencios_manos_libres += 1
+                if _silencios_manos_libres < MAX_SILENCIOS_MANOS_LIBRES:
+                    continue   # mic sigue abierto, no exige palabra clave
+                _manos_libres = False
+                _silencios_manos_libres = 0
+                hablado_del_asistente("Llevamos un rato en silencio, señor; salgo del modo manos libres.")
+            break
+
+        if siguiente:
+            texto = siguiente
             ventana.enviar_texto_a_html(f"USER (Voz) >> {texto}", "#ffffff")
             print(f"USER (Voz): {texto}")
             continue
@@ -143,6 +194,7 @@ if verificacion == "Bienvenido Marco":
     iniciar_guardian_descanso(hablado_del_asistente)
     iniciar_anticipacion(hablado_del_asistente)   # anticipación proactiva (clima, trasnochadas)
     iniciar_presencia(hablado_del_asistente)      # te saluda al llegar al PC (ve tu cara)
+    iniciar_vigilante_llamadas(hablado_del_asistente)  # te avisa de llamadas entrantes al PC
     ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz)
     
     while Activado: 

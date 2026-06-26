@@ -105,18 +105,41 @@ Vive en `Comunicacion/Funciones_Variadas.py` (no en Programador.py — sigue sie
 ## 4. De regalo: Interfaz Always-On más Jarvis
 
 No usa Claude Code, pero se hizo en la misma tanda de mejoras y es parte de la "experiencia
-Jarvis" que motivó todo esto (que Marco controle si la ventana se queda o se esconde, en vez de
-que se auto-oculte sin avisar a medio uso).
+Jarvis": que Marco controle por voz si la ventana se queda, se esconde, y cómo lo escucha AIDEN.
+Todos son **atajos SIN LLM** en `Procesar_Peticion` (igual que los comandos de música: coste $0,
+instantáneos, no gastan tokens).
 
+### 4.1 Ventana: quedarse o esconderse
 - `Interfaz_En_Python.py` (SlideHUD): el timeout de inactividad de la ventana subió de
   **60s a 120s** (`_ms_inactividad`); se reinicia con cada texto/voz nueva vía
   `_reiniciar_timer()`, que respeta un flag `_fijada`.
-- **Comandos de voz SIN LLM** (atajos directos en `Procesar_Peticion`, igual que los de
-  música): "quédate" / "mantente" / "no te ocultes" → fija la ventana (no se auto-oculta);
-  "ocúltate" / "escóndete" / "ya descansa" / "puedes descansar" → la oculta y vuelve a REPOSO.
+- **Quédate**: "quédate" / "mantente" / "no te ocultes" / "no te vayas" / "no te escondas"
+  → `pedir_fijar.emit(True)`: la ventana NO se auto-oculta.
+- **Descansa / ocúltate** (lista ampliada a propósito, antes era muy restrictiva): "descansa",
+  "descansar", "ocúltate", "escóndete", "duerme", "a dormir", "puedes irte", "retírate"…
+  → oculta la ventana y vuelve a REPOSO. Truco: se usan **raíces sueltas** (`"descansa"` ya
+  engancha *descansa/descansar/ya descansa/puedes descansar*), por eso funciona con frases
+  naturales y no solo con la frase exacta.
 - Señales Qt nuevas, thread-safe: `pedir_fijar` (bool) y `pedir_ocultar`.
-- **Decisión de diseño**: el auto-recogerse es MÁS fiel al estilo Jarvis que una ventana fija
-  por defecto — pero el usuario manda con los comandos cuando quiere lo contrario.
+- **Decisión**: el auto-recogerse es MÁS Jarvis que una ventana fija por defecto — pero el
+  usuario manda con los comandos.
+
+### 4.2 Modo MANOS LIBRES (sesión de mic abierto)
+Para no tener que decir la palabra clave (ni dar clic) en cada turno. Es una **sesión que se
+activa y desactiva por voz** (no un "siempre encendido"), justo para no responderle a la tele
+todo el día.
+- **Entrar**: "modo manos libres" / "escúchame" / "modo conversación" → abre el mic: hablas
+  todo lo que quieras y AIDEN responde, turno tras turno, sin palabra clave ni clic.
+- **Salir**: "descansa" (sale y oculta) / "modo normal" / "deja de escuchar" (sale y sigue
+  visible). Y **auto-salida por silencio**: tras ~5 min sin hablar (`MAX_SILENCIOS=15` turnos ×
+  `ESPERA=20s`) sale solo y avisa, para no dejar el mic abierto eternamente.
+- Estado en dos globales de `Main_AlwaysOn.py`/`Main.py`: `_manos_libres` y
+  `_silencios_manos_libres`. La lógica vive en el bucle de seguimiento de `Procesar_Peticion`
+  (un `while` interno que escucha y NO re-procesa el comando viejo).
+- **Tradeoff aceptado** (Marco lo eligió sobre las otras opciones): mientras está activo, si la
+  tele/música/otra persona habla con voz clara, AIDEN puede contestar. Por eso es una sesión
+  acotada + auto-salida, no un mic permanente. El filtro anti-alucinaciones (ver *Bugs A7*)
+  amortigua el ruido de fondo.
 
 ---
 
@@ -127,7 +150,7 @@ Ninguna de las piezas de este documento se ha probado con AIDEN corriendo de ver
 1. `crear_proyecto` construyendo algo real de punta a punta y `ejecutar_proyecto` corriéndolo.
 2. `Auto_Modificacion` con la nueva firma, verificando que el `reload` deje la habilidad usable
    en la misma sesión.
-3. Los comandos "quédate"/"ocúltate" en la ventana Always-On.
+3. Los comandos "quédate"/"descansa" y el **modo manos libres** en la ventana Always-On.
 
 ---
 
@@ -139,3 +162,7 @@ Ninguna de las piezas de este documento se ha probado con AIDEN corriendo de ver
   Claude Code programa) — enlaza con la página de *modelo de dos niveles* (Decisiones).
 - Actualizar la página de la herramienta *Auto_Modificacion* existente: cambió de parámetro
   (`codigo_python` → `instruccion`) y de motor (gemini → Claude Code).
+- Página de concepto: **"Control por voz / experiencia Jarvis"** (§4) — comandos de ventana +
+  modo manos libres; enlazar con *barge-in* (Arquitectura §4) y con *Bugs A7* (alucinaciones).
+- Página de decisión: **"manos libres como sesión, no como mic permanente"** (las 3 opciones que
+  se evaluaron y por qué se eligió la sesión acotada).

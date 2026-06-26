@@ -4,6 +4,7 @@ import time
 from Funciones_Slide.Productividad.Alertas_Mercado import pausar_alertas
 from Funciones_Slide.Productividad.Anticipacion import pausar_anticipacion
 from Funciones_Slide.Sistema.Presencia import pausar_presencia
+from Funciones_Slide.Comunicacion.Vigilante_Llamadas import pausar_vigilante_llamadas
 from Voz_Slide.Transcriptor import descargar_modelo_voz, recargar_modelo_voz
 from Voz_Slide.Herramientas_del_asistente import descargar_kokoro, recargar_kokoro, _lock_audio
 
@@ -54,6 +55,7 @@ def modo_gaming(activar):
     pausar_alertas(encender)                # gaming ON  -> alertas de mercado en pausa
     pausar_anticipacion(encender)           # gaming ON  -> anticipación proactiva en pausa
     pausar_presencia(encender)              # gaming ON  -> saludo por presencia en pausa
+    pausar_vigilante_llamadas(encender)     # gaming ON  -> aviso de llamadas en pausa
     vram_ok = _liberar_vram(encender)       # gaming ON  -> libera VRAM (descarga modelos)
 
     if encender:

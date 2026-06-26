@@ -46,40 +46,72 @@ _calibrado = False
 
 
 # --- Guardia anti-alucinaciones de Whisper ---------------------------------
-# Cuando Whisper recibe SILENCIO o ruido (un suspiro, el ventilador, la calle) tiende a
-# "inventar" frases que vio miles de veces en subtitulos de YouTube. Estas son las mas
-# famosas en espanol. Si la transcripcion es SOLO una de estas, NO es un comando real.
+# Cuando Whisper recibe SILENCIO o ruido (un suspiro, el ventilador, la calle, la tele baja)
+# tiende a "inventar" frases que vio millones de veces en subtitulos de YouTube. DOS defensas:
+#   (1) _texto_confiable: filtra por la CONFIANZA del propio modelo (la senal mas potente).
+#   (2) es_alucinacion: lista negra de frases/tokens fantasma conocidos.
+# Frases fantasma (subcadena: si aparece dentro del texto, es alucinacion).
 _ALUCINACIONES = (
-    "subtitulos realizados por la comunidad de amara.org",
-    "subtitulos por la comunidad de amara.org",
-    "subtitulado por la comunidad de amara.org",
-    "mas informacion www.amara.org",
-    "amara.org",
-    "subtitulos por subtitulamos.tv",
-    "gracias por ver el video",
-    "gracias por ver el vídeo",
-    "gracias por ver este video",
-    "no olvides suscribirte",
-    "suscribete al canal",
-    "dale like y suscribete",
+    "amara.org", "subtitulamos.tv", "subtitulado por", "subtitulos por",
+    "subtitulos realizados por", "subtitulos hechos por", "subtitles by",
+    "gracias por ver", "gracias por su atencion", "gracias por escuchar",
+    "no olvides suscribirte", "suscribete al canal", "dale like",
+    "like y suscribete", "comenta y suscribete", "nos vemos en el proximo",
+    "nos vemos en la proxima", "hasta la proxima", "hasta el proximo video",
+    "thanks for watching", "thank you for watching", "see you next time",
+    "mooji.org", "editado por", "transcripcion por", "www.", ".com/",
+    "musica de fondo",
 )
-# Frases cortas que SOLO son alucinacion si vienen solas (texto completo == esto).
+# Tokens/frases que SOLO son alucinacion si vienen SOLOS (texto completo == esto).
+# OJO: NO se incluyen "si"/"no"/"ok" porque son respuestas validas a una pregunta.
 _ALUCINACIONES_EXACTAS = (
-    "suscribete", "¡suscribete!", "gracias", "¡gracias!", "gracias.", "subtitulos",
+    "suscribete", "gracias", "muchas gracias", "subtitulos", "adios",
+    "hasta luego", "you", "thank you", "thanks", "bye", "musica",
+    "aplausos", "risas", "silencio",
 )
+
+
+def _norm(texto):
+    # minusculas, sin tildes, sin signos al inicio/fin, espacios colapsados.
+    t = (texto or "").strip().lower()
+    t = t.translate(str.maketrans("áéíóúü", "aeiouu"))
+    t = t.strip(" ¡!¿?.,;:-—\"'()[]")
+    return " ".join(t.split())
+
+
+# Palabras cortas (<=2 letras) que SI son validas (respuestas a una pregunta).
+_VALIDAS_CORTAS = ("si", "no", "ya", "ok", "va")
 
 
 def es_alucinacion(texto):
     """True si el texto transcrito es una alucinacion tipica de Whisper sobre silencio/ruido."""
-    if not texto:
-        return True
-    limpio = texto.strip().lower()
-    limpio = limpio.translate(str.maketrans("áéíóúü", "aeiouu"))
+    limpio = _norm(texto)
     if not limpio:
+        return True
+    if len(limpio) <= 2 and limpio not in _VALIDAS_CORTAS:   # ruido, no un comando
         return True
     if limpio in _ALUCINACIONES_EXACTAS:
         return True
     return any(frase in limpio for frase in _ALUCINACIONES)
+
+
+def _texto_confiable(segmentos):
+    """Une el texto de los segmentos descartando los que el MODELO marca como poco fiables
+    (probable alucinacion): no detecto voz, confianza pesima, o texto muy repetitivo.
+    Umbrales conservadores para no cortar voz real."""
+    partes = []
+    for s in segmentos:
+        no_voz     = getattr(s, "no_speech_prob", 0.0)    # prob. de que NO haya voz
+        confianza  = getattr(s, "avg_logprob", 0.0)       # mas negativo = menos seguro
+        repeticion = getattr(s, "compression_ratio", 0.0) # alto = texto en bucle
+        if no_voz > 0.6 and confianza < -0.5:   # silencio disfrazado
+            continue
+        if confianza < -1.0:                    # confianza pesima -> invento
+            continue
+        if repeticion > 2.4:                    # "gracias gracias gracias..."
+            continue
+        partes.append(s.text)
+    return "".join(partes).strip()
 
 
 def escuchador_de_usuario(timeout=15):
@@ -106,8 +138,9 @@ def escuchador_de_usuario(timeout=15):
    segmentos,_ = _asegurar_modelo().transcribe(
        "archivo_temporal_voz.wav", language="es",
        vad_filter=True, condition_on_previous_text=False,
+       no_speech_threshold=0.6, log_prob_threshold=-1.0,
    )
-   texto = "".join([s.text for s in segmentos]).strip()
+   texto = _texto_confiable(segmentos)
    print(f"⏱  Transcripcion (Whisper) : {time.perf_counter() - _t0:5.2f} s")
    if es_alucinacion(texto):
        print(f"🛇 Alucinacion descartada: {texto!r}")

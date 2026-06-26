@@ -1,7 +1,7 @@
 import torch
 from collections import deque
 import numpy as np
-from Voz_Slide.Transcriptor import escuchador_de_usuario, es_alucinacion
+from Voz_Slide.Transcriptor import escuchador_de_usuario, es_alucinacion, _texto_confiable
 from faster_whisper import WhisperModel
 import pyaudio
 from Voz_Slide.Herramientas_del_asistente import buscar_microfono
@@ -81,9 +81,8 @@ def Reconocimiento_de_habla():
             
 
 
-            segmentos,_ = modelo_rapido.transcribe(frase_completa,language="es",beam_size=5,vad_filter=True,condition_on_previous_text=False)
-            texto = "".join([s.text for s in segmentos]).strip()#aqui como modelo_rapido devuelve muchas cosas, nos enfocamos en solo texto con " s.text" para despues pegar con el join todas las frases
-            #que tengan ""
+            segmentos,_ = modelo_rapido.transcribe(frase_completa,language="es",beam_size=5,vad_filter=True,condition_on_previous_text=False,no_speech_threshold=0.6,log_prob_threshold=-1.0)
+            texto = _texto_confiable(segmentos)#_texto_confiable descarta los segmentos que el modelo marca como poco fiables (alucinaciones)
             texto = texto.upper()
             texto_limpio = quitar_tildes_simple(texto)
             print(texto_limpio)

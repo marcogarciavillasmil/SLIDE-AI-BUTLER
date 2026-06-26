@@ -201,6 +201,14 @@ gastan el cupo de function-calling ni dependen de que el modelo decida llamarlos
   mercado). Anti-molestia: máx 1/día por tipo, en franjas sensatas. Revisa cada 20 min.
 - **Presencia** (`Sistema/Presencia.py`): cada 25s mira por la cámara y te saluda al LLEGAR (te
   reconoce por tu cara). 6 candados anti-molestia (ver fuente de presencia).
+- **Vigilante de llamadas** (`Comunicacion/Vigilante_Llamadas.py`): cada 2s mira las VENTANAS;
+  cuando aparece una de llamada entrante (WhatsApp abre una ventana titulada "Voice call" — NO
+  manda toast de Windows) avisa por voz e identifica la app por su proceso. Si no reaccionas en
+  ~10s, ATIENDE solo como contestadora: con UI Automation pulsa "Accept", dice un mensaje fijo al
+  contacto por el cable VB-CABLE (`contestar_llamada`) y cuelga ("End call"). Si tú la tomas antes,
+  no interviene (el botón Accept ya no está). Mensaje personalizable: `MENSAJE_LLAMADA_AUSENTE` en
+  secretos.py. Manual: "contesta y dile X" (atajo SIN LLM en Procesar_Peticion, gated en que haya
+  una llamada sonando). Necesita VB-CABLE + `uiautomation`.
 - **Alertas de mercado**, **guardián de descanso** (anti-maratón), **Telegram** (polling),
   **centinela de código** (watchdog: detecta SyntaxError en tus .py y se ofrece a ayudar).
 
