@@ -200,6 +200,14 @@ def _instrucciones_completas(consulta=""):
             base += "\n\nCONTEXTO ACTUAL (lo que está pasando en tu PC ahora mismo):\n" + mundo
     except Exception:
         pass
+    # PERFIL APRENDIDO: lo que AIDEN ha aprendido de Marco con el tiempo (intereses, rutinas...).
+    try:
+        from Nucleo_Slide.Perfil_Marco import perfil_texto
+        perfil = perfil_texto()
+        if perfil:
+            base += "\n\nLO QUE HAS APRENDIDO DE MARCO (úsalo para entenderlo y anticiparte, con tacto):\n" + perfil
+    except Exception:
+        pass
     return base
 
 

@@ -53,6 +53,7 @@ from Funciones_Slide.Sistema.Vigilante_Pantalla import iniciar_vigilante_pantall
 from Funciones_Slide.Sistema.Vigilante_Portapapeles import iniciar_vigilante_portapapeles
 from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
 from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
+from Nucleo_Slide.Perfil_Marco import iniciar_perfil
 iniciar_hilos()
 
 
@@ -235,6 +236,7 @@ iniciar_vigilante_pantalla(hablado_del_asistente)  # te avisa si una app se cong
 iniciar_vigilante_portapapeles(hablado_del_asistente)  # reacciona a lo que copias (error/YouTube)
 iniciar_vigilante_reunion(hablado_del_asistente)   # modo reunión: silencia distracciones en llamadas
 iniciar_conciencia_ambiental()                     # mira el estado del PC y decide solo qué hacer
+iniciar_perfil()                                   # aprende quién es Marco con el tiempo
 
 # ── Qt en el hilo principal ───────────────────────────────────────────────────
 # Las funciones que usa la ventana para conversar (event-driven, sin cambios):

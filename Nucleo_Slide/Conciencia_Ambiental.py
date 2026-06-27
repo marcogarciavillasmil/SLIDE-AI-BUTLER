@@ -153,6 +153,13 @@ def _foto_del_pc():
             partes.append("\nHILO DE CONCIENCIA (lo que ha pasado, visto por todo AIDEN):\n" + compartido)
     except Exception:
         pass
+    try:
+        from Nucleo_Slide.Perfil_Marco import perfil_texto
+        perfil = perfil_texto()
+        if perfil:
+            partes.append("\nQUIÉN ES MARCO (perfil aprendido, úsalo para decidir mejor):\n" + perfil)
+    except Exception:
+        pass
     return "\n".join(partes)
 
 
