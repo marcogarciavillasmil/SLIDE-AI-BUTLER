@@ -64,6 +64,12 @@ def modo_gaming(activar):
     pausar_vigilante_portapapeles(encender) # gaming ON  -> portapapeles inteligente en pausa
     pausar_vigilante_reunion(encender)      # gaming ON  -> detector de reuniones en pausa
     pausar_conciencia(encender)             # gaming ON  -> conciencia ambiental en pausa
+    try:                                    # avisa a la conciencia compartida el modo actual
+        from Nucleo_Slide.Estado_Del_Mundo import actualizar, registrar_evento
+        actualizar(modo="gaming" if encender else "normal")
+        registrar_evento("Marco entró a modo gaming." if encender else "Marco salió de modo gaming.", "modos")
+    except Exception:
+        pass
     vram_ok = _liberar_vram(encender)       # gaming ON  -> libera VRAM (descarga modelos)
 
     if encender:

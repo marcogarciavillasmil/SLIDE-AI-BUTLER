@@ -81,6 +81,11 @@ def _revisar(hablar):
     _ultimo_aviso = ahora
     _ultimo_ofrecido = actual
     hablar(frase)
+    try:
+        from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
+        registrar_evento("Marco copió algo accionable (error o link); ofrecí ayuda.", "portapapeles")
+    except Exception:
+        pass
 
 
 def iniciar_vigilante_portapapeles(hablar):

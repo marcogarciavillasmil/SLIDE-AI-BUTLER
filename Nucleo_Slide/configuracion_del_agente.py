@@ -9,6 +9,7 @@ from Funciones_Slide.Productividad.Notas import tomar_nota, leer_notas
 from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
 from Funciones_Slide.Sistema.Control_PC import dictar, abrir_carpeta, control_ventana, controlar_energia, tomar_captura, ajustar_brillo, buscar_archivo
 from Funciones_Slide.Sistema.Control_Pantalla import controlar_pantalla
+from Funciones_Slide.Productividad.Metas import gestionar_metas
 from Funciones_Slide.Productividad.Protocolos import activar_protocolo
 from Funciones_Slide.Info.Bitacora import resumen_actividad
 from Funciones_Slide.Sistema.Modos import modo_gaming
@@ -726,6 +727,21 @@ tools = [
                 "required": ["accion"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "gestionar_metas",
+            "description": "Gestiona los OBJETIVOS de alto nivel de Marco que AIDEN acompaña en el tiempo (NO tareas con hora ni notas sueltas). Usala cuando Marco diga 'mi meta es X', 'quiero lograr X', 'recuerda que estoy trabajando en X' (accion='agregar'), 'ya cumpli/termine X' (accion='cerrar'), o '¿cuales son mis metas?' (accion='listar').",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "agregar | cerrar | listar"},
+                    "meta": {"type": "string", "description": "El texto de la meta (para agregar o cerrar). Vacio para listar."}
+                },
+                "required": ["accion"]
+            }
+        }
     }
 ]
 
@@ -776,4 +792,5 @@ tools_map = {
     "crear_proyecto": crear_proyecto,
     "ejecutar_proyecto": ejecutar_proyecto,
     "controlar_pantalla": controlar_pantalla,
+    "gestionar_metas": gestionar_metas,
 }
