@@ -52,6 +52,18 @@ def pausar_presencia(pausar=True):
     _pausado = bool(pausar)
 
 
+def _mundo(presente=None, evento=None):
+    # Alimenta la conciencia compartida: presencia de Marco y/o un evento (su llegada).
+    try:
+        from Nucleo_Slide.Estado_Del_Mundo import actualizar, registrar_evento
+        if presente is not None:
+            actualizar(marco_presente=bool(presente))
+        if evento:
+            registrar_evento(evento, "presencia")
+    except Exception:
+        pass
+
+
 def _cargar_referencia():
     # Calcula el "vector" de la cara de Marco desde Imagenes/Marco.jpg, una sola vez.
     global _ref
@@ -115,11 +127,13 @@ def _revisar(hablar):
 
     if not _marco_en_camara():
         _chequeos_seguidos = 0          # no te veo: el hueco de ausencia crecerá
+        _mundo(presente=False)
         return
 
     ahora = time.time()
     hueco = ahora - _ultima_vez_visto   # cuánto llevabas sin que te vieran
     _ultima_vez_visto = ahora
+    _mundo(presente=True)
 
     if hueco >= AUSENCIA_MINIMA:
         # Acabas de LLEGAR tras una ausencia real -> empieza una visita nueva.
@@ -134,6 +148,7 @@ def _revisar(hablar):
         _saludado_esta_visita = True
         _ultimo_saludo = ahora
         hablar(random.choice(_SALUDOS))
+        _mundo(evento="Marco llegó al PC.")
 
 
 def iniciar_presencia(hablar):

@@ -8,6 +8,7 @@ from Funciones_Slide.Info.Finanzas import consultar_accion, mis_acciones
 from Funciones_Slide.Productividad.Notas import tomar_nota, leer_notas
 from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
 from Funciones_Slide.Sistema.Control_PC import dictar, abrir_carpeta, control_ventana, controlar_energia, tomar_captura, ajustar_brillo, buscar_archivo
+from Funciones_Slide.Sistema.Control_Pantalla import controlar_pantalla
 from Funciones_Slide.Productividad.Protocolos import activar_protocolo
 from Funciones_Slide.Info.Bitacora import resumen_actividad
 from Funciones_Slide.Sistema.Modos import modo_gaming
@@ -433,7 +434,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "control_ventana",
-            "description": "Controla la ventana activa de Windows. Úsala cuando Marco pida minimizar, maximizar, cerrar la ventana, cambiar de ventana, o mostrar el escritorio.",
+            "description": "Controla la VENTANA ENTERA activa de Windows: minimizar, maximizar, cerrar la ventana completa, cambiar de ventana, o mostrar el escritorio. OJO: para cerrar solo una PESTAÑA (de navegador) NO uses esto, usa controlar_pantalla con accion 'cerrar_pestana'.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -710,6 +711,21 @@ tools = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "controlar_pantalla",
+            "description": "Interaccion VISIBLE con la pantalla: AIDEN mueve el MOUSE y el TECLADO sobre lo que YA esta en pantalla, y Marco lo VE. USA ESTA para: hacer clic en un boton/elemento por su nombre, ordenar ventanas en mosaico, traer una app al frente, teclear, hacer scroll, CERRAR UNA PESTANA (Ctrl+W), seleccionar, o un atajo de teclas. NO la uses para abrir una app nueva (usa Abrir_Apps), ni para minimizar/maximizar/cerrar la VENTANA entera (usa control_ventana), ni para pegar texto largo de golpe (usa dictar), ni para leer/analizar lo que hay en pantalla (usa analizar_pantalla). accion posibles: clic, doble_clic, clic_derecho, ordenar, enfocar, escribir, scroll, cerrar_pestana, seleccionar, atajo.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "accion": {"type": "string", "description": "clic | doble_clic | clic_derecho | ordenar | enfocar | escribir | scroll | cerrar_pestana | seleccionar | atajo"},
+                    "objetivo": {"type": "string", "description": "Para clic/doble_clic/clic_derecho: el texto visible del boton/elemento. Para enfocar: nombre de la app. Para escribir: el texto. Para atajo: el combo (ej. 'control + s'). Para scroll: 'arriba'/'abajo'. Vacio para ordenar/seleccionar."}
+                },
+                "required": ["accion"]
+            }
+        }
     }
 ]
 
@@ -759,4 +775,5 @@ tools_map = {
     "recordar_conversacion": recordar_conversacion,
     "crear_proyecto": crear_proyecto,
     "ejecutar_proyecto": ejecutar_proyecto,
+    "controlar_pantalla": controlar_pantalla,
 }

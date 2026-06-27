@@ -4,6 +4,7 @@ from Nucleo_Slide.configuracion_del_agente import tools
 from Nucleo_Slide.configuracion_del_agente import tools_map
 from Nucleo_Slide.Memoria import obtener_memoria_texto
 from Nucleo_Slide.Memoria_Episodica import registrar_episodio, recordar_relevantes
+from Funciones_Slide.Info.Experto import MODELO_EXPERTO   # gemini-2.5-pro (para el escalado)
 from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
 import json
 from openai import OpenAI
@@ -51,6 +52,20 @@ MAX_RONDAS = 5   # cuantas tandas de herramientas encadenadas como maximo por tu
 TEMPERATURA = 0.7
 TEMPERATURA_SEGURA = 0
 MAX_REINTENTOS = 5   # reintentos si el API devuelve finish_reason='error' (rachas malas de Gemini)
+
+# ── ESCALADO AUTOMÁTICO Flash -> Pro ──────────────────────────────────────────
+# Si Flash flaquea (una herramienta FALLA, malforma la llamada, titubea, o se autoevalúa con baja
+# confianza), el CÓDIGO escala el problema a Pro (gemini-2.5-pro) en un disparo con todo el contexto.
+ESCALADO_AUTO = True            # activar/desactivar el escalado automático a Pro
+AUTOEVALUACION = True           # (solo texto/Telegram) Flash se autocalifica y escala si está inseguro
+_FRASE_ESCALADO = "Un segundo, señor, estoy consultando un análisis más profundo."
+# Señales de TITUBEO de Flash (curadas para NO chocar con frases normales como "no se preocupe").
+_FRASES_INSEGURAS = (
+    "no estoy seguro", "no estoy segura", "no estoy completamente seguro", "no estoy del todo seguro",
+    "no lo sé", "no lo se", "no tengo información", "no tengo informacion", "no tengo datos",
+    "no tengo certeza", "no sabría decir", "no sabria decir", "no podría asegurar", "no puedo asegurar",
+    "no estoy al tanto", "habría que verificar", "habria que verificar", "no cuento con esa",
+)
 
 
 memoria = []
@@ -176,6 +191,15 @@ def _instrucciones_completas(consulta=""):
     episodios = recordar_relevantes(consulta)
     if episodios:
         base += "\n\n" + episodios
+    # CONCIENCIA COMPARTIDA: qué está pasando AHORA en el PC (lo que vieron los vigilantes/la
+    # conciencia). Así el cerebro de voz NO arranca de cero: sabe el contexto del momento.
+    try:
+        from Nucleo_Slide.Estado_Del_Mundo import resumen_texto
+        mundo = resumen_texto()
+        if mundo:
+            base += "\n\nCONTEXTO ACTUAL (lo que está pasando en tu PC ahora mismo):\n" + mundo
+    except Exception:
+        pass
     return base
 
 
@@ -195,6 +219,67 @@ def _ejecutar_tool_call(nombre_funcion, argumentos):
         return str(tools_map[nombre_funcion](**datos))
     except Exception as e:
         return f"Error ejecutando {nombre_funcion}: {e}"
+
+
+def _es_error_tool(resultado):
+    # True si el resultado de una herramienta indica que FALLÓ (excepción / no existe).
+    return isinstance(resultado, str) and resultado.startswith(("Error ejecutando", "La herramienta "))
+
+
+def _respuesta_insegura(texto):
+    # True si Flash TITUBEA en su respuesta (señal para escalar a Pro).
+    if not texto:
+        return False
+    t = texto.lower()
+    return any(f in t for f in _FRASES_INSEGURAS)
+
+
+def _flash_inseguro(consulta, respuesta):
+    # AUTOEVALUACIÓN: Flash se califica del 1 al 5; <=2 = inseguro -> conviene escalar a Pro.
+    try:
+        r = client.chat.completions.create(
+            model=MODELO,
+            messages=[{'role': 'user', 'content':
+                "Del 1 al 5, ¿qué tan seguro estás de que esta respuesta es CORRECTA y COMPLETA? "
+                "Responde SOLO el número.\n\nPregunta: " + str(consulta) +
+                "\n\nRespuesta: " + str(respuesta)}],
+            temperature=0, max_tokens=3,
+        )
+        m = re.search(r'[1-5]', (r.choices[0].message.content or ""))
+        return bool(m) and int(m.group()) <= 2
+    except Exception:
+        return False
+
+
+def _escalar_a_pro(consulta, contexto_msgs):
+    # Manda TODO el contexto a Pro (gemini-2.5-pro) en un disparo y devuelve su respuesta final.
+    try:
+        historial = []
+        for m in contexto_msgs[-12:]:
+            rol, cont = m.get('role'), m.get('content')
+            if rol == 'user' and cont:
+                historial.append(f"Usuario: {cont}")
+            elif rol == 'assistant' and cont:
+                historial.append(f"AIDEN: {cont}")
+            elif rol == 'tool' and cont:
+                historial.append(f"(resultado de herramienta: {cont})")
+        prompt = (
+            "Eres el analista experto de AIDEN, el asistente de Marco. El asistente rápido no pudo "
+            "resolver esto con confianza o una herramienta falló. Con TODO el contexto, da la mejor "
+            "respuesta FINAL para Marco: en español, clara, directa, en primera persona como su "
+            "asistente y tratándolo de 'señor'. Si es un cálculo o problema, resuélvelo paso a paso "
+            "y da el resultado.\n\nCONTEXTO:\n" + "\n".join(historial) +
+            "\n\nPETICIÓN ACTUAL: " + str(consulta)
+        )
+        r = client.chat.completions.create(
+            model=MODELO_EXPERTO,
+            messages=[{'role': 'user', 'content': prompt}],
+            max_tokens=1200,
+        )
+        return (r.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"[escalado] no pude consultar a Pro: {e}")
+        return ""
 
 
 def _recortar_memoria(mem):
@@ -325,17 +410,48 @@ def proceso_de_ia(texto_de_whisper):
                 'content': texto_acumulado or None,
                 'tool_calls': tool_calls_list
             })
+            hubo_error_tool = False
             for tc in tool_calls_list:
                 resultado = _ejecutar_tool_call(tc['function']['name'], tc['function']['arguments'])
                 print(f"Resultado de {tc['function']['name']}: {resultado}")
+                if _es_error_tool(resultado):
+                    hubo_error_tool = True
                 memoria.append({'role': 'tool', 'tool_call_id': tc['id'], 'content': resultado})
+            # Si una herramienta FALLÓ, escala el cuello de botella a Pro (análisis más profundo).
+            if ESCALADO_AUTO and hubo_error_tool and not ultima_interrumpida:
+                decir(_FRASE_ESCALADO)
+                pro = _escalar_a_pro(texto_de_whisper, memoria)
+                if pro:
+                    for _fr in re.split(r'(?<=[.!?])\s+', pro):
+                        if _fr.strip():
+                            decir(_fr.strip())
+                    texto_final = pro
+                    memoria.append({'role': 'assistant', 'content': texto_final})
+                    break
             # Otra ronda: el modelo puede usar los resultados o encadenar mas herramientas.
             continue
         else:
             if texto_acumulado.strip():
                 texto_final = texto_acumulado.strip()
+                # TITUBEO: Flash dudó -> verifica con Pro (continuación; lo anterior ya se habló).
+                if ESCALADO_AUTO and _respuesta_insegura(texto_final) and not ultima_interrumpida:
+                    decir(_FRASE_ESCALADO)
+                    pro = _escalar_a_pro(texto_de_whisper, memoria)
+                    if pro:
+                        for _fr in re.split(r'(?<=[.!?])\s+', pro):
+                            if _fr.strip():
+                                decir(_fr.strip())
+                        texto_final = pro
             elif hubo_error:
-                texto_final = "Disculpe, señor, tuve un problema técnico al procesar eso. ¿Lo intenta de nuevo?"
+                # MALFORMED tras reintentos: en vez de un mensaje vacío, escala a Pro.
+                pro = ""
+                if ESCALADO_AUTO and not ultima_interrumpida:
+                    decir(_FRASE_ESCALADO)
+                    pro = _escalar_a_pro(texto_de_whisper, memoria)
+                    for _fr in re.split(r'(?<=[.!?])\s+', pro):
+                        if _fr.strip():
+                            decir(_fr.strip())
+                texto_final = pro or "Disculpe, señor, tuve un problema técnico al procesar eso. ¿Lo intenta de nuevo?"
             else:
                 texto_final = "Hecho, señor."
             memoria.append({'role': 'assistant', 'content': texto_final})
@@ -350,6 +466,13 @@ def proceso_de_ia(texto_de_whisper):
 
     # Guarda este intercambio en la memoria episódica (para recordarlo en el futuro).
     registrar_episodio(texto_de_whisper, texto_final, origen="voz")
+    # Y en la CONCIENCIA COMPARTIDA, para que el resto de AIDEN sepa qué se acaba de hablar.
+    try:
+        from Nucleo_Slide.Estado_Del_Mundo import registrar_evento, marcar_interaccion
+        registrar_evento(f"Marco dijo: {texto_de_whisper} — AIDEN: {texto_final}", "voz")
+        marcar_interaccion()
+    except Exception:
+        pass
 
     print(texto_final)
     return texto_final
@@ -374,10 +497,12 @@ def procesar_remoto(texto):
             msg = resp.choices[0].message
 
             # Si tras los reintentos el modelo sigue dando error (sin texto ni tool),
-            # respondemos algo claro en vez de un "Hecho, señor" engañoso.
+            # escalamos a Pro en vez de devolver un mensaje vacío.
             if (resp.choices[0].finish_reason == "error"
                     and not msg.tool_calls and not (msg.content or "").strip()):
-                texto_final = "Disculpe, señor, tuve un problema técnico al procesar eso. ¿Lo intenta de nuevo?"
+                pro = _escalar_a_pro(str(texto), _memoria_remota) if ESCALADO_AUTO else ""
+                texto_final = pro or "Disculpe, señor, tuve un problema técnico al procesar eso. ¿Lo intenta de nuevo?"
+                _memoria_remota.append({'role': 'assistant', 'content': texto_final})
                 break
 
             if msg.tool_calls:
@@ -390,14 +515,34 @@ def procesar_remoto(texto):
                         for tc in msg.tool_calls
                     ]
                 })
+                hubo_error_tool = False
                 for tc in msg.tool_calls:
                     resultado = _ejecutar_tool_call(tc.function.name, tc.function.arguments)
                     print(f"[remoto] {tc.function.name}: {resultado}")
+                    if _es_error_tool(resultado):
+                        hubo_error_tool = True
                     _memoria_remota.append({'role': 'tool', 'tool_call_id': tc.id, 'content': resultado})
+                # Una herramienta FALLÓ -> escala el problema a Pro.
+                if ESCALADO_AUTO and hubo_error_tool:
+                    pro = _escalar_a_pro(str(texto), _memoria_remota)
+                    if pro:
+                        texto_final = pro
+                        _memoria_remota.append({'role': 'assistant', 'content': texto_final})
+                        break
                 continue
             else:
                 texto_final = (msg.content or "").strip() or "Hecho, señor."
                 _memoria_remota.append({'role': 'assistant', 'content': texto_final})
+                # Escalado por TITUBEO o por AUTOEVALUACIÓN baja (Telegram no es streaming: es limpio).
+                if ESCALADO_AUTO and texto_final != "Hecho, señor.":
+                    inseguro = _respuesta_insegura(texto_final)
+                    if not inseguro and AUTOEVALUACION and len(texto_final) > 40:
+                        inseguro = _flash_inseguro(str(texto), texto_final)
+                    if inseguro:
+                        pro = _escalar_a_pro(str(texto), _memoria_remota)
+                        if pro:
+                            texto_final = pro
+                            _memoria_remota.append({'role': 'assistant', 'content': texto_final})
                 break
         else:
             if not texto_final:
@@ -405,6 +550,12 @@ def procesar_remoto(texto):
 
         _memoria_remota = _recortar_memoria(_memoria_remota)
         registrar_episodio(str(texto), texto_final, origen="telegram")
+        try:
+            from Nucleo_Slide.Estado_Del_Mundo import registrar_evento, marcar_interaccion
+            registrar_evento(f"Por Telegram, Marco: {str(texto)} — AIDEN: {texto_final}", "telegram")
+            marcar_interaccion()
+        except Exception:
+            pass
         return texto_final
 
 

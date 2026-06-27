@@ -191,6 +191,11 @@ def _revisar(hablar):
             if ahora - _ultimo_aviso.get(app, 0) >= COOLDOWN:
                 _ultimo_aviso[app] = ahora
                 hablar(_frase_aviso(app))
+                try:
+                    from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
+                    registrar_evento(f"Llamada entrante{(' por ' + app) if app else ''}.", "llamadas")
+                except Exception:
+                    pass
             continue
         if hwnd in _auto_hechas or auto is None:
             continue

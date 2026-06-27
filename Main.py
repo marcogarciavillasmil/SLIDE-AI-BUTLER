@@ -29,6 +29,10 @@ from Funciones_Slide.Productividad.Anticipacion import iniciar_anticipacion
 from Funciones_Slide.Sistema.Presencia import iniciar_presencia
 from Funciones_Slide.Comunicacion.Vigilante_Llamadas import iniciar_vigilante_llamadas, hay_llamada_activa, mensaje_de_orden
 from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
+from Funciones_Slide.Sistema.Vigilante_Pantalla import iniciar_vigilante_pantalla
+from Funciones_Slide.Sistema.Vigilante_Portapapeles import iniciar_vigilante_portapapeles
+from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
+from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 iniciar_hilos()
 
 
@@ -195,6 +199,10 @@ if verificacion == "Bienvenido Marco":
     iniciar_anticipacion(hablado_del_asistente)   # anticipación proactiva (clima, trasnochadas)
     iniciar_presencia(hablado_del_asistente)      # te saluda al llegar al PC (ve tu cara)
     iniciar_vigilante_llamadas(hablado_del_asistente)  # te avisa de llamadas entrantes al PC
+    iniciar_vigilante_pantalla(hablado_del_asistente)  # te avisa si una app se congela / hay un error
+    iniciar_vigilante_portapapeles(hablado_del_asistente)  # reacciona a lo que copias (error/YouTube)
+    iniciar_vigilante_reunion(hablado_del_asistente)   # modo reunión: silencia distracciones en llamadas
+    iniciar_conciencia_ambiental()                     # mira el estado del PC y decide solo qué hacer
     ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz)
     
     while Activado: 

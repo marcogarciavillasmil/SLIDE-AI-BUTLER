@@ -5,6 +5,10 @@ from Funciones_Slide.Productividad.Alertas_Mercado import pausar_alertas
 from Funciones_Slide.Productividad.Anticipacion import pausar_anticipacion
 from Funciones_Slide.Sistema.Presencia import pausar_presencia
 from Funciones_Slide.Comunicacion.Vigilante_Llamadas import pausar_vigilante_llamadas
+from Funciones_Slide.Sistema.Vigilante_Pantalla import pausar_vigilante_pantalla
+from Funciones_Slide.Sistema.Vigilante_Portapapeles import pausar_vigilante_portapapeles
+from Funciones_Slide.Sistema.Vigilante_Reunion import pausar_vigilante_reunion
+from Nucleo_Slide.Conciencia_Ambiental import pausar_conciencia
 from Voz_Slide.Transcriptor import descargar_modelo_voz, recargar_modelo_voz
 from Voz_Slide.Herramientas_del_asistente import descargar_kokoro, recargar_kokoro, _lock_audio
 
@@ -56,6 +60,10 @@ def modo_gaming(activar):
     pausar_anticipacion(encender)           # gaming ON  -> anticipación proactiva en pausa
     pausar_presencia(encender)              # gaming ON  -> saludo por presencia en pausa
     pausar_vigilante_llamadas(encender)     # gaming ON  -> aviso de llamadas en pausa
+    pausar_vigilante_pantalla(encender)     # gaming ON  -> centinela de pantalla en pausa
+    pausar_vigilante_portapapeles(encender) # gaming ON  -> portapapeles inteligente en pausa
+    pausar_vigilante_reunion(encender)      # gaming ON  -> detector de reuniones en pausa
+    pausar_conciencia(encender)             # gaming ON  -> conciencia ambiental en pausa
     vram_ok = _liberar_vram(encender)       # gaming ON  -> libera VRAM (descarga modelos)
 
     if encender:

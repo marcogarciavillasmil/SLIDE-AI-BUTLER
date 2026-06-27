@@ -9,6 +9,7 @@ debug.log
 tareas.json
 memoria.json
 memoria_episodica.json
+estado_del_mundo.json
 AIDEN_log.txt
 secretos.py
 notas.txt
