@@ -68,6 +68,15 @@ def perfil_texto():
     return "\n".join(partes).strip()
 
 
+def _solo_vinetas(texto):
+    # Quita preámbulos/cierres: deja desde la primera viñeta. Si no hay viñetas, devuelve igual.
+    lineas = (texto or "").splitlines()
+    while lineas and not lineas[0].lstrip().startswith(("-", "*", "•", "·")):
+        lineas.pop(0)
+    limpio = "\n".join(lineas).strip()
+    return limpio or (texto or "").strip()
+
+
 def _temas_frecuentes(episodios, n=8):
     c = Counter()
     for ep in episodios[-200:]:
@@ -107,7 +116,9 @@ def actualizar_perfil(forzar=False):
             "conversaciones recientes (y el perfil anterior si lo hay), ACTUALIZA un PERFIL CONCISO "
             "de quién es Marco: sus intereses, rutinas, proyectos en curso, su forma de hablar y lo "
             "que le importa. Reglas: 5-8 viñetas cortas, en TERCERA persona, SOLO lo que se deduzca "
-            "de los datos (NO inventes), fusiona lo nuevo con lo anterior sin perder lo válido.\n\n"
+            "de los datos (NO inventes), fusiona lo nuevo con lo anterior sin perder lo válido. "
+            "Responde SOLO con las viñetas (cada una empezando con '- '), SIN frase introductoria "
+            "ni de cierre.\n\n"
             + (f"PERFIL ANTERIOR:\n{anterior}\n\n" if anterior else "")
             + f"CONVERSACIONES RECIENTES:\n{muestra}\n\nPERFIL ACTUALIZADO:"
         )
@@ -115,7 +126,7 @@ def actualizar_perfil(forzar=False):
             model=MODELO, messages=[{"role": "user", "content": prompt}],
             temperature=0.3, max_tokens=400,
         )
-        texto = (r.choices[0].message.content or "").strip()
+        texto = _solo_vinetas((r.choices[0].message.content or "").strip())
         if texto:
             with _lock:
                 _perfil["texto"] = texto
