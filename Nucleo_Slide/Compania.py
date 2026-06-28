@@ -2,6 +2,8 @@
 # lo que estaban haciendo. Aquí viven los momentos en que AIDEN "vuelve a ti":
 #   - saludo_de_reanudacion(): al arrancar, un saludo cálido que continúa vuestra historia
 #     (última conversación + metas activas + cuánto tiempo pasó). [Idea #2]
+#   - lo_que_retuve(desde_ts): al VOLVER al PC, UNA cosa notable que pasó mientras no estabas
+#     (llamada, error, algo que la conciencia/Vocero calló). Se siente como "estuve pendiente". [Idea #3]
 #
 # Imports PEREZOSOS del LLM/estado para no crear ciclos. Fallbacks robustos: si algo falla, saluda
 # normal — JAMÁS rompe el arranque de AIDEN.
@@ -64,3 +66,38 @@ def saludo_de_reanudacion():
         return t or _FALLBACK
     except Exception:
         return _FALLBACK
+
+
+# Orígenes "notables" para traer al volver, en orden de prioridad.
+def _prioridad(ev):
+    origen = ev.get("origen", "")
+    texto = (ev.get("texto", "") or "").lower()
+    if origen == "llamadas":
+        return 0                       # alguien te llamó: lo más importante
+    if origen == "pantalla":
+        return 1                       # una app se rompió / un error
+    if "callado para no molestar" in texto:
+        return 2                       # algo que AIDEN pensó pero calló por respeto
+    if origen == "conciencia":
+        return 2
+    if origen == "reunion":
+        return 3
+    return 9                           # el resto (voz, presencia, modos...) NO se trae
+
+
+def lo_que_retuve(desde_ts=0):
+    """UNA cosa notable que pasó desde 'desde_ts' (mientras Marco no estaba), o "" si nada amerita.
+    Se siente como 'estuve pendiente mientras no estabas'."""
+    try:
+        from Nucleo_Slide.Estado_Del_Mundo import obtener
+        evs = (obtener() or {}).get("eventos", []) or []
+    except Exception:
+        return ""
+    candidatos = [e for e in evs if e.get("t", 0) >= desde_ts and _prioridad(e) < 9]
+    if not candidatos:
+        return ""
+    candidatos.sort(key=lambda e: (_prioridad(e), -e.get("t", 0)))   # más importante y más reciente
+    txt = candidatos[0].get("texto", "").replace("(callado para no molestar) ", "").strip()
+    if not txt:
+        return ""
+    return "Por cierto, señor, mientras no estaba: " + txt

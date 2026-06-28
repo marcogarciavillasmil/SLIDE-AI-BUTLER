@@ -43,6 +43,7 @@ _ultimo_saludo = 0           # timestamp del último saludo (para el cooldown)
 _ultima_vez_visto = 0        # timestamp de la última vez que se te vio
 _chequeos_seguidos = 0       # detecciones consecutivas en la visita actual
 _saludado_esta_visita = True # arranca True para no saludar apenas inicia (ya hiciste login)
+_inicio_ausencia = 0         # cuándo empezó tu última ausencia (para contar "lo que retuve")
 _ref = None                  # vector de tu cara (se calcula una vez)
 
 
@@ -119,7 +120,7 @@ def _marco_en_camara():
 
 
 def _revisar(hablar):
-    global _ultimo_saludo, _ultima_vez_visto, _chequeos_seguidos, _saludado_esta_visita
+    global _ultimo_saludo, _ultima_vez_visto, _chequeos_seguidos, _saludado_esta_visita, _inicio_ausencia
     if _pausado:
         return
     if not (HORA_INICIO <= datetime.now().hour < HORA_FIN):
@@ -139,6 +140,7 @@ def _revisar(hablar):
         # Acabas de LLEGAR tras una ausencia real -> empieza una visita nueva.
         _chequeos_seguidos = 1
         _saludado_esta_visita = False
+        _inicio_ausencia = ahora - hueco   # cuándo te fuiste (para "lo que retuve")
     else:
         _chequeos_seguidos += 1
 
@@ -147,8 +149,16 @@ def _revisar(hablar):
             and (ahora - _ultimo_saludo) >= COOLDOWN):
         _saludado_esta_visita = True
         _ultimo_saludo = ahora
+        saludo = random.choice(_SALUDOS)
+        try:                                # "estuve pendiente": UNA cosa que retuve mientras no estabas
+            from Nucleo_Slide.Compania import lo_que_retuve
+            pendiente = lo_que_retuve(_inicio_ausencia)
+            if pendiente:
+                saludo = saludo + " " + pendiente
+        except Exception:
+            pass
         from Nucleo_Slide.Vocero import emitir
-        emitir(hablar, random.choice(_SALUDOS), "presencia")
+        emitir(hablar, saludo, "presencia")
         _mundo(evento="Marco llegó al PC.")
 
 
