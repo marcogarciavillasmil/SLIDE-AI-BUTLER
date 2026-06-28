@@ -4,6 +4,8 @@
 #     (última conversación + metas activas + cuánto tiempo pasó). [Idea #2]
 #   - lo_que_retuve(desde_ts): al VOLVER al PC, UNA cosa notable que pasó mientras no estabas
 #     (llamada, error, algo que la conciencia/Vocero calló). Se siente como "estuve pendiente". [Idea #3]
+#   - despedida_del_dia(): al irte a dormir, un cierre cálido que reconoce tu día. Contraparte de la
+#     reanudación; cierra el arco apertura<->cierre. [Idea #5]
 #
 # Imports PEREZOSOS del LLM/estado para no crear ciclos. Fallbacks robustos: si algo falla, saluda
 # normal — JAMÁS rompe el arranque de AIDEN.
@@ -101,3 +103,34 @@ def lo_que_retuve(desde_ts=0):
     if not txt:
         return ""
     return "Por cierto, señor, mientras no estaba: " + txt
+
+
+def despedida_del_dia():
+    """Cierre cálido del día (contraparte de la reanudación): reconoce lo de hoy y desea descanso."""
+    _simple = "Buenas noches, señor. Que descanse; mañana seguimos."
+    try:
+        from datetime import datetime
+        hoy = datetime.now().strftime("%d/%m/%Y")
+        eps = _cargar_episodios() or []
+        de_hoy = [e for e in eps if e.get("fecha", "") == hoy]
+        from Nucleo_Slide.Estado_Del_Mundo import metas_activas
+        metas = [m.get("texto", "") for m in metas_activas()][:2]
+        if not de_hoy and not metas:
+            return "Buenas noches, señor. Que descanse."
+        resumen = "; ".join(e.get("usuario", "")[:60] for e in de_hoy[-4:]) or "un día tranquilo"
+
+        from Nucleo_Slide.Cerebro import client, MODELO
+        prompt = (
+            "Eres AIDEN despidiendo a Marco (trátalo de 'señor') que se va a dormir, como un compañero "
+            "cercano. Hoy, en resumen, hablaron/trabajaron en: " + resumen + ". "
+            + (f"Sus metas activas: {'; '.join(metas)}. " if metas else "")
+            + "Despídete cálido y BREVE (1-2 frases): reconoce algo concreto de su día y deséale buenas "
+            "noches o descanso. Natural, sin listar, sin sonar a robot ni meloso de más."
+        )
+        r = client.chat.completions.create(
+            model=MODELO, messages=[{"role": "user", "content": prompt}],
+            temperature=0.7, max_tokens=100,
+        )
+        return (r.choices[0].message.content or "").strip() or _simple
+    except Exception:
+        return _simple

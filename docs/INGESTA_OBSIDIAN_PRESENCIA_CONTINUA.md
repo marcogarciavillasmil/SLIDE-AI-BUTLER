@@ -13,11 +13,12 @@ emocional). Un compañero no se define por lo que sabe, sino por **cómo te trat
 *"que no solo sepa tu vida, sino que esté contigo en ella — con el tono justo, retomando el hilo,
 habiéndote tenido presente."*
 
-Cubre 4 piezas (+ el Vocero, ya documentado en *Núcleo Jarvis §5*):
+Cubre 5 piezas (+ el Vocero, ya documentado en *Núcleo Jarvis §5*):
 1. Sintonía emocional (te habla según cómo estás).
 2. Reanudación contextual (te recibe retomando el hilo).
 3. "Estuve pendiente" (al volver, te trae lo que retuvo).
 4. Variedad viva (nunca suena enlatado).
+5. Despedida con sentido (te cierra el día reconociéndolo).
 
 ---
 
@@ -84,6 +85,23 @@ fallback. Detalle pequeño, gran impacto en sentirse vivo.
 
 ### Para la wiki
 - Página de decisión: **"matar las confirmaciones enlatadas (variedad viva)"**; enlazar a *personalidad/humor*.
+
+---
+
+## 5. Despedida con sentido — `Nucleo_Slide/Compania.py` → `despedida_del_dia()`
+
+La CONTRAPARTE de la reanudación: si AIDEN te recibe retomando el hilo, también te DESPIDE
+reconociendo tu día. Cierra el arco del día (apertura ↔ cierre). Disparador: frases de fin de día
+("buenas noches", "me voy a dormir", "hasta mañana"…) en `Procesar_Peticion` (en ambos Main), DISTINTO
+del "descansa"/"ocúltate" que solo oculta la ventana. Usa los episodios de HOY + metas activas y el
+LLM redacta 1-2 frases cálidas que reconocen algo concreto del día y desean descanso; además oculta la
+ventana. Fallback robusto. Ejemplo real: *"Buenas noches, señor. Hoy avanzó un montón con la tesis,
+especialmente con la introducción. Que descanse para seguir con ese capítulo 2."*
+
+### Para la wiki
+- Misma entidad **`Compania.py`** (función `despedida_del_dia`); enlazar a *reanudación* (su par) y
+  a *metas* / *memoria episódica*.
+- Página de concepto: **"el arco del día: apertura (reanudación) ↔ cierre (despedida)"**.
 
 ---
 

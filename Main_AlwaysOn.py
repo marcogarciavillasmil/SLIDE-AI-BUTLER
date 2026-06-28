@@ -55,7 +55,7 @@ from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
 from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 from Nucleo_Slide.Perfil_Marco import iniciar_perfil
 from Funciones_Slide.Productividad.Seguimiento_Metas import iniciar_seguimiento_metas
-from Nucleo_Slide.Compania import saludo_de_reanudacion
+from Nucleo_Slide.Compania import saludo_de_reanudacion, despedida_del_dia
 iniciar_hilos()
 
 
@@ -116,6 +116,13 @@ def Procesar_Peticion(texto, ventana):
             _manos_libres = False
             _silencios_manos_libres = 0
             respuesta_slide = "Modo manos libres desactivado, señor. Volveré a esperar la palabra clave."
+        elif any(p in texto for p in ("buenas noches", "buenas noche", "me voy a dormir",
+                                      "hasta mañana", "hasta manana", "ya me acuesto", "me voy a la cama")):
+            # Fin del DÍA (no solo ocultar): despedida cálida que reconoce tu día + se oculta.
+            _manos_libres = False
+            respuesta_slide = despedida_del_dia()
+            ventana.pedir_fijar.emit(False)
+            ventana.pedir_ocultar.emit()
         elif any(p in texto for p in ("descansa", "descansar", "ocúltate", "ocultate", "ocultar",
                                       "escóndete", "escondete", "esconder", "duerme", "duérmete",
                                       "duermete", "a dormir", "ve a dormir", "puedes irte", "retírate", "retirate")):
