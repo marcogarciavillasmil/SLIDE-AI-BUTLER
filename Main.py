@@ -35,6 +35,7 @@ from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
 from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 from Nucleo_Slide.Perfil_Marco import iniciar_perfil
 from Funciones_Slide.Productividad.Seguimiento_Metas import iniciar_seguimiento_metas
+from Nucleo_Slide.Compania import saludo_de_reanudacion
 iniciar_hilos()
 
 
@@ -188,7 +189,7 @@ if verificacion == "Bienvenido Marco":
     # (Antes esto corria SIEMPRE: si entraba un extrano, AIDEN se quedaba
     #  escuchando para siempre sin negar el acceso hasta que alguien hablara.)
     Activado, Texto = Reconocimiento_de_habla()
-    hablado_del_asistente("Bienvenido Marco")
+    hablado_del_asistente(saludo_de_reanudacion())   # saludo que RETOMA el hilo, no en frío
     hablado_del_asistente(briefing())
     _n_notis = contar_actividad()
     if _n_notis > 0:
