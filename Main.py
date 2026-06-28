@@ -34,6 +34,7 @@ from Funciones_Slide.Sistema.Vigilante_Portapapeles import iniciar_vigilante_por
 from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
 from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 from Nucleo_Slide.Perfil_Marco import iniciar_perfil
+from Funciones_Slide.Productividad.Seguimiento_Metas import iniciar_seguimiento_metas
 iniciar_hilos()
 
 
@@ -205,6 +206,7 @@ if verificacion == "Bienvenido Marco":
     iniciar_vigilante_reunion(hablado_del_asistente)   # modo reunión: silencia distracciones en llamadas
     iniciar_conciencia_ambiental()                     # mira el estado del PC y decide solo qué hacer
     iniciar_perfil()                                   # aprende quién es Marco con el tiempo
+    iniciar_seguimiento_metas(hablado_del_asistente)   # PERSIGUE tus metas (te acompaña 1 vez/día)
     ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz)
     
     while Activado: 

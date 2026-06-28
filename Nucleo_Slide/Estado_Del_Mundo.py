@@ -108,6 +108,42 @@ def metas_activas():
         return [m for m in _estado.get("metas", []) if m.get("estado") != "hecha"]
 
 
+def anotar_avance(subcadena, nota=""):
+    # Registra un avance en la meta que coincida. Devuelve el texto de la meta o "".
+    sub = str(subcadena or "").lower()
+    with _lock:
+        for m in _estado.get("metas", []):
+            if m.get("estado") != "hecha" and sub and sub in m.get("texto", "").lower():
+                m.setdefault("avances", []).append({"t": time.time(), "nota": str(nota or "")[:200]})
+                m["avances"] = m["avances"][-10:]
+                m["ultimo_seguimiento"] = time.time()
+                _guardar()
+                return m.get("texto", "")
+        return ""
+
+
+def meta_para_seguimiento(min_horas=22):
+    # La meta activa MÁS olvidada (cuyo último seguimiento supere min_horas). None si ninguna toca.
+    ahora = time.time()
+    with _lock:
+        cands = [m for m in _estado.get("metas", [])
+                 if m.get("estado") != "hecha"
+                 and ahora - m.get("ultimo_seguimiento", m.get("creada", 0)) >= min_horas * 3600]
+        if not cands:
+            return None
+        cands.sort(key=lambda m: m.get("ultimo_seguimiento", m.get("creada", 0)))
+        return json.loads(json.dumps(cands[0]))
+
+
+def marcar_seguimiento(subcadena):
+    sub = str(subcadena or "").lower()
+    with _lock:
+        for m in _estado.get("metas", []):
+            if sub and sub in m.get("texto", "").lower():
+                m["ultimo_seguimiento"] = time.time()
+        _guardar()
+
+
 # ── Lectura ───────────────────────────────────────────────────────────────────
 def obtener():
     with _lock:

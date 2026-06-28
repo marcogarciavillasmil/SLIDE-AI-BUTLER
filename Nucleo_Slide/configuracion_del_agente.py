@@ -732,12 +732,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "gestionar_metas",
-            "description": "Gestiona los OBJETIVOS de alto nivel de Marco que AIDEN acompaña en el tiempo (NO tareas con hora ni notas sueltas). Usala cuando Marco diga 'mi meta es X', 'quiero lograr X', 'recuerda que estoy trabajando en X' (accion='agregar'), 'ya cumpli/termine X' (accion='cerrar'), o '¿cuales son mis metas?' (accion='listar').",
+            "description": "Gestiona los OBJETIVOS de alto nivel de Marco que AIDEN acompaña en el tiempo (NO tareas con hora ni notas sueltas). Usala cuando Marco diga 'mi meta es X' / 'quiero lograr X' (accion='agregar'), 'avancé en X / ya hice X de mi meta Y' (accion='avance', meta=cuál, nota=qué avanzó), 'ya cumplí/terminé X' (accion='cerrar'), o '¿cuáles son mis metas?' (accion='listar').",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "accion": {"type": "string", "description": "agregar | cerrar | listar"},
-                    "meta": {"type": "string", "description": "El texto de la meta (para agregar o cerrar). Vacio para listar."}
+                    "accion": {"type": "string", "description": "agregar | avance | cerrar | listar"},
+                    "meta": {"type": "string", "description": "El texto/identificador de la meta (para agregar, avance o cerrar). Vacio para listar."},
+                    "nota": {"type": "string", "description": "Solo para accion='avance': qué avanzó Marco en esa meta."}
                 },
                 "required": ["accion"]
             }

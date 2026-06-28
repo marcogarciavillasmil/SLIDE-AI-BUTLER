@@ -54,6 +54,7 @@ from Funciones_Slide.Sistema.Vigilante_Portapapeles import iniciar_vigilante_por
 from Funciones_Slide.Sistema.Vigilante_Reunion import iniciar_vigilante_reunion
 from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 from Nucleo_Slide.Perfil_Marco import iniciar_perfil
+from Funciones_Slide.Productividad.Seguimiento_Metas import iniciar_seguimiento_metas
 iniciar_hilos()
 
 
@@ -237,6 +238,7 @@ iniciar_vigilante_portapapeles(hablado_del_asistente)  # reacciona a lo que copi
 iniciar_vigilante_reunion(hablado_del_asistente)   # modo reunión: silencia distracciones en llamadas
 iniciar_conciencia_ambiental()                     # mira el estado del PC y decide solo qué hacer
 iniciar_perfil()                                   # aprende quién es Marco con el tiempo
+iniciar_seguimiento_metas(hablado_del_asistente)   # PERSIGUE tus metas (te acompaña 1 vez/día)
 
 # ── Qt en el hilo principal ───────────────────────────────────────────────────
 # Las funciones que usa la ventana para conversar (event-driven, sin cambios):
