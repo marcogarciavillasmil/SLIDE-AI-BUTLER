@@ -1,4 +1,5 @@
 import re
+import random
 from datetime import datetime
 from Nucleo_Slide.configuracion_del_agente import tools
 from Nucleo_Slide.configuracion_del_agente import tools_map
@@ -130,9 +131,11 @@ notificaciones llegaron?", "¿cómo van mis acciones?") → hazlo con la herrami
 JAMÁS devuelvas una respuesta vacía: si algo se resuelve con una herramienta, úsala aunque la frase sea
 indirecta; si de verdad ninguna aplica, conversa o responde con tu conocimiento. Nunca te quedes callado.
 Tras ejecutar:
-— Acción que solo "se hace" (abrir/cerrar app, mensaje, volumen, llamar, colgar) → confirma breve: "De inmediato, señor."
+— Acción que solo "se hace" (abrir/cerrar app, mensaje, volumen, llamar, colgar) → confirma BREVE,
+  natural y VARIADO, refiriéndote a lo que hiciste ("listo, Spotify arriba", "cerrada esa pestaña",
+  "mensaje enviado"). NUNCA repitas siempre la misma frase ni sueltes un "Hecho, señor" robótico.
 — Herramienta que DEVUELVE un dato (precio, clima, búsqueda, lo que ves por la cámara, etc.) → DALE el dato
-  claro y natural; nunca respondas solo "De inmediato, señor" cuando Marco pidió información.
+  claro y natural; nunca respondas solo con una confirmación seca cuando Marco pidió información.
 — Si algo falla → diagnostícalo en una línea y propón solución.
 La hora y la fecha las tienes arriba; si Marco las pide, respóndelas directo.
 
@@ -235,6 +238,19 @@ def _ejecutar_tool_call(nombre_funcion, argumentos):
         return str(tools_map[nombre_funcion](**datos))
     except Exception as e:
         return f"Error ejecutando {nombre_funcion}: {e}"
+
+
+# VARIEDAD VIVA: confirmaciones cuando AIDEN ejecutó algo pero no escribió texto. En vez del robótico
+# "Hecho, señor." siempre igual, un repertorio variado para que se sienta vivo (no un bot).
+_CONFIRMACIONES = (
+    "Hecho, señor.", "Listo.", "De inmediato, señor.", "Ya está, señor.", "Hecho.",
+    "Como ordene, señor.", "Resuelto, señor.", "Sobre la marcha.", "Enseguida, señor.",
+    "Cumplido.", "Listo, señor.", "Ahí está.",
+)
+
+
+def _confirmacion():
+    return random.choice(_CONFIRMACIONES)
 
 
 def _es_error_tool(resultado):
@@ -469,13 +485,13 @@ def proceso_de_ia(texto_de_whisper):
                             decir(_fr.strip())
                 texto_final = pro or "Disculpe, señor, tuve un problema técnico al procesar eso. ¿Lo intenta de nuevo?"
             else:
-                texto_final = "Hecho, señor."
+                texto_final = _confirmacion()
             memoria.append({'role': 'assistant', 'content': texto_final})
             break
     else:
         # Se agotaron las rondas sin una respuesta final de texto.
         if not texto_final:
-            texto_final = "Listo, señor."
+            texto_final = _confirmacion()
             memoria.append({'role': 'assistant', 'content': texto_final})
 
     memoria = _recortar_memoria(memoria)
@@ -547,10 +563,12 @@ def procesar_remoto(texto):
                         break
                 continue
             else:
-                texto_final = (msg.content or "").strip() or "Hecho, señor."
+                contenido = (msg.content or "").strip()
+                texto_final = contenido or _confirmacion()
                 _memoria_remota.append({'role': 'assistant', 'content': texto_final})
                 # Escalado por TITUBEO o por AUTOEVALUACIÓN baja (Telegram no es streaming: es limpio).
-                if ESCALADO_AUTO and texto_final != "Hecho, señor.":
+                # Solo si hubo respuesta REAL del modelo (no el fallback de confirmación).
+                if ESCALADO_AUTO and contenido:
                     inseguro = _respuesta_insegura(texto_final)
                     if not inseguro and AUTOEVALUACION and len(texto_final) > 40:
                         inseguro = _flash_inseguro(str(texto), texto_final)
@@ -562,7 +580,7 @@ def procesar_remoto(texto):
                 break
         else:
             if not texto_final:
-                texto_final = "Listo, señor."
+                texto_final = _confirmacion()
 
         _memoria_remota = _recortar_memoria(_memoria_remota)
         registrar_episodio(str(texto), texto_final, origen="telegram")
