@@ -80,7 +80,8 @@ def _revisar(hablar):
         return
     _ultimo_aviso = ahora
     _ultimo_ofrecido = actual
-    hablar(frase)
+    from Nucleo_Slide.Vocero import emitir
+    emitir(hablar, frase, "portapapeles")
     try:
         from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
         registrar_evento("Marco copió algo accionable (error o link); ofrecí ayuda.", "portapapeles")

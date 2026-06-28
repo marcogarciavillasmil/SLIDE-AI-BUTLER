@@ -190,7 +190,8 @@ def _revisar(hablar):
             _primera_vez[hwnd] = ahora
             if ahora - _ultimo_aviso.get(app, 0) >= COOLDOWN:
                 _ultimo_aviso[app] = ahora
-                hablar(_frase_aviso(app))
+                from Nucleo_Slide.Vocero import emitir
+                emitir(hablar, _frase_aviso(app), "llamadas", "alta")   # urgente: salta el presupuesto
                 try:
                     from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
                     registrar_evento(f"Llamada entrante{(' por ' + app) if app else ''}.", "llamadas")

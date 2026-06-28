@@ -238,12 +238,13 @@ def _revisar():
         return
     _recientes.append(decision)
     from Voz_Slide.Herramientas_del_asistente import hablado_del_asistente
-    hablado_del_asistente(decision)
-    try:
-        from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
-        registrar_evento(f"AIDEN (proactivo): {decision}", "conciencia")
-    except Exception:
-        pass
+    from Nucleo_Slide.Vocero import emitir
+    if emitir(hablado_del_asistente, decision, "conciencia"):   # el Vocero decide si toca hablar
+        try:
+            from Nucleo_Slide.Estado_Del_Mundo import registrar_evento
+            registrar_evento(f"AIDEN (proactivo): {decision}", "conciencia")
+        except Exception:
+            pass
 
 
 def iniciar_conciencia_ambiental():

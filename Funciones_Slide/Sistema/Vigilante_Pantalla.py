@@ -105,12 +105,14 @@ def _revisar(hablar):
             try:
                 from Funciones_Slide.Info.Vision import analizar_pantalla
                 detalle = str(analizar_pantalla("Resume en una frase el error que se ve en pantalla."))
-                hablar(f"Señor, detecto un error en pantalla. {detalle}")
+                from Nucleo_Slide.Vocero import emitir
+                emitir(hablar, f"Señor, detecto un error en pantalla. {detalle}", "pantalla")
                 _evento_mundo(frase)
                 continue
             except Exception:
                 pass
-        hablar(frase)
+        from Nucleo_Slide.Vocero import emitir
+        emitir(hablar, frase, "pantalla")
         _evento_mundo(frase)
     # Olvida las ventanas que ya se cerraron (para que un próximo problema vuelva a avisar).
     for clave in [c for c in _avisadas if c not in vistos]:

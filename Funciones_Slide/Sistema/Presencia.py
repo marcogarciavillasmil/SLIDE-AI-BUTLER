@@ -147,7 +147,8 @@ def _revisar(hablar):
             and (ahora - _ultimo_saludo) >= COOLDOWN):
         _saludado_esta_visita = True
         _ultimo_saludo = ahora
-        hablar(random.choice(_SALUDOS))
+        from Nucleo_Slide.Vocero import emitir
+        emitir(hablar, random.choice(_SALUDOS), "presencia")
         _mundo(evento="Marco llegó al PC.")
 
 

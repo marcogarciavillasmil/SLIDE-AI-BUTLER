@@ -73,9 +73,11 @@ def _revisar(hablar):
     frase = _generar_seguimiento(meta)
     if not frase:
         return
+    from Nucleo_Slide.Vocero import emitir
+    if not emitir(hablar, frase, "metas"):
+        return                                   # el Vocero lo silenció: no quema el cupo del día
     _ultimo_dia = hoy
     marcar_seguimiento(meta.get("texto", ""))
-    hablar(frase)
     try:
         registrar_evento(f"Seguimiento de meta «{meta.get('texto','')}»: {frase}", "metas")
     except Exception:
