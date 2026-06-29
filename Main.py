@@ -36,6 +36,7 @@ from Nucleo_Slide.Conciencia_Ambiental import iniciar_conciencia_ambiental
 from Nucleo_Slide.Perfil_Marco import iniciar_perfil
 from Funciones_Slide.Productividad.Seguimiento_Metas import iniciar_seguimiento_metas
 from Nucleo_Slide.Compania import saludo_de_reanudacion, despedida_del_dia
+from Nucleo_Slide.Reflexion import iniciar_reflexion
 iniciar_hilos()
 
 
@@ -215,6 +216,7 @@ if verificacion == "Bienvenido Marco":
     iniciar_conciencia_ambiental()                     # mira el estado del PC y decide solo qué hacer
     iniciar_perfil()                                   # aprende quién es Marco con el tiempo
     iniciar_seguimiento_metas(hablado_del_asistente)   # PERSIGUE tus metas (te acompaña 1 vez/día)
+    iniciar_reflexion()                                # contempla y entiende el momento de Marco
     ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz)
     
     while Activado: 

@@ -211,6 +211,15 @@ def _instrucciones_completas(consulta=""):
             base += "\n\nLO QUE HAS APRENDIDO DE MARCO (úsalo para entenderlo y anticiparte, con tacto):\n" + perfil
     except Exception:
         pass
+    # REFLEXIÓN: tu lectura del MOMENTO de Marco (su arco/situación), para entenderlo de fondo.
+    try:
+        from Nucleo_Slide.Reflexion import reflexion_texto
+        refl = reflexion_texto()
+        if refl:
+            base += "\n\nTU LECTURA DEL MOMENTO DE MARCO (lo que has reflexionado sobre su situación; " \
+                    "úsala para entenderlo y acompañarlo, NO la recites):\n" + refl
+    except Exception:
+        pass
     # SINTONÍA: cómo está Marco ahora -> ajusta el TONO (no lo que haces).
     try:
         from Nucleo_Slide.Sintonia import lectura_de_estado

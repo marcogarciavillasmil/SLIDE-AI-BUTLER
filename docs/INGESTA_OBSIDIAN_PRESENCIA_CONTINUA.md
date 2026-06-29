@@ -13,12 +13,13 @@ emocional). Un compañero no se define por lo que sabe, sino por **cómo te trat
 *"que no solo sepa tu vida, sino que esté contigo en ella — con el tono justo, retomando el hilo,
 habiéndote tenido presente."*
 
-Cubre 5 piezas (+ el Vocero, ya documentado en *Núcleo Jarvis §5*):
+Cubre 6 piezas (+ el Vocero, ya documentado en *Núcleo Jarvis §5*):
 1. Sintonía emocional (te habla según cómo estás).
 2. Reanudación contextual (te recibe retomando el hilo).
 3. "Estuve pendiente" (al volver, te trae lo que retuvo).
 4. Variedad viva (nunca suena enlatado).
 5. Despedida con sentido (te cierra el día reconociéndolo).
+6. Reflexión (entiende tu MOMENTO, no solo tus datos) — la capa más profunda.
 
 ---
 
@@ -102,6 +103,31 @@ especialmente con la introducción. Que descanse para seguir con ese capítulo 2
 - Misma entidad **`Compania.py`** (función `despedida_del_dia`); enlazar a *reanudación* (su par) y
   a *metas* / *memoria episódica*.
 - Página de concepto: **"el arco del día: apertura (reanudación) ↔ cierre (despedida)"**.
+
+---
+
+## 6. Reflexión — `Nucleo_Slide/Reflexion.py` (entiende tu MOMENTO)
+
+La capa MÁS PROFUNDA de "te conoce", y la más Jarvis. Tres niveles de comprensión de Marco, juntos:
+- **Sintonía** → cómo está AHORA MISMO (este turno) — momentáneo.
+- **Perfil** → QUIÉN es (intereses, rutinas) — identidad estable.
+- **Reflexión** → CÓMO está en su ARCO actual (su momento) — situación que evoluciona. ← esto.
+
+`reflexionar()` corre en ratos tranquilos (auto-regulado: cada ~4h o cada 8 conversaciones nuevas) y,
+con los episodios recientes + metas + la reflexión anterior, el LLM destila una LECTURA empática y
+honesta de la situación de Marco: cómo ha estado de ánimo, dónde está atascado o en racha, qué le
+vendría bien. NO son datos (eso es el perfil): es una *contemplación* de su momento. `reflexion_texto()`
+se inyecta en CADA decisión del cerebro → feel pervasivo (que "piensa en ti"), no un momento suelto.
+`iniciar_reflexion()` hilo de fondo en ambos Main. `reflexion.json` GITIGNORED.
+
+Ejemplo real generado: *"Marco está en una montaña rusa con su tesis... terminó la introducción pero
+se lanza al capítulo 2 con una presión que podría abrumarlo; quizás le vendría bien celebrar sus
+logros y darse un respiro."*
+
+### Para la wiki
+- Página de entidad: **`Reflexion.py`**; enlazar a *Perfil_Marco* y *Sintonia* (las tres capas).
+- Página de concepto clave: **"las tres capas de conocer a Marco: sintonía (ahora) / perfil (quién) /
+  reflexión (su momento)"** — distinguir DATOS vs ENTENDIMIENTO.
 
 ---
 
