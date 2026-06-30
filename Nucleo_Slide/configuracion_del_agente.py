@@ -12,6 +12,7 @@ from Funciones_Slide.Sistema.Control_Pantalla import controlar_pantalla
 from Funciones_Slide.Productividad.Metas import gestionar_metas
 from Funciones_Slide.Sistema.Misiones import ejecutar_mision
 from Nucleo_Slide.Memoria_RAG import recordar_a_fondo
+from Funciones_Slide.Info.Investigacion import investigar
 from Funciones_Slide.Productividad.Protocolos import activar_protocolo
 from Funciones_Slide.Info.Bitacora import resumen_actividad
 from Funciones_Slide.Sistema.Modos import modo_gaming
@@ -774,6 +775,20 @@ tools = [
                 "required": ["consulta"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "investigar",
+            "description": "Investiga un tema A FONDO (multi-paso: descompone en sub-preguntas, busca cada una en internet y SINTETIZA un informe), te lo reporta por voz y lo guarda como nota. Úsala cuando Marco diga 'investiga/averigua/analiza a fondo X', 'hazme un informe sobre X'. Distinta de buscar_en_internet (una búsqueda) y consultar_experto (razona sin buscar). Tarda; corre en segundo plano.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tema": {"type": "string", "description": "El tema a investigar a fondo, con el detalle que dio Marco."}
+                },
+                "required": ["tema"]
+            }
+        }
     }
 ]
 
@@ -827,4 +842,5 @@ tools_map = {
     "gestionar_metas": gestionar_metas,
     "ejecutar_mision": ejecutar_mision,
     "recordar_a_fondo": recordar_a_fondo,
+    "investigar": investigar,
 }

@@ -33,7 +33,7 @@ _PROHIBIDAS = {
     "Enviar_mensaje_Whatsapp", "llamada_whatsapp", "colgar", "contestar_llamada",
     "controlar_energia", "cerrar_aplicacion", "Salir", "Auto_Modificacion",
     "crear_proyecto", "ejecutar_proyecto", "dictar", "control_ventana",
-    "Abrir_Videos_Youtube", "modo_gaming", "controlar_pantalla", "ejecutar_mision",
+    "Abrir_Videos_Youtube", "modo_gaming", "controlar_pantalla", "ejecutar_mision", "investigar",
 }
 
 _tools_cache = None
