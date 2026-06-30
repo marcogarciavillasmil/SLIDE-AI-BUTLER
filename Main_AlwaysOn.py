@@ -303,5 +303,14 @@ def bucle_reposo():
 
 threading.Thread(target=bucle_reposo, daemon=True).start()
 
+# OVERLAY DE PRESENCIA: hace VISIBLE el núcleo (foco, estado, metas, eventos, reflexión) en una
+# esquina, siempre encima y click-through. Aislado: si falla, no afecta nada.
+try:
+    from Interfaz.Overlay import crear_overlay
+    _overlay = crear_overlay()
+except Exception as _e:
+    _overlay = None
+    print(f"[overlay] omitido: {_e}")
+
 # Qt corre para siempre aquí (esto es lo "always-on"); se sale solo con "Salir" del tray.
 sys.exit(app.exec())
