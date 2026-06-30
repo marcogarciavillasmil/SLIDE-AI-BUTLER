@@ -10,6 +10,7 @@ from Funciones_Slide.Comunicacion.Llamadas import contestar_llamada
 from Funciones_Slide.Sistema.Control_PC import dictar, abrir_carpeta, control_ventana, controlar_energia, tomar_captura, ajustar_brillo, buscar_archivo
 from Funciones_Slide.Sistema.Control_Pantalla import controlar_pantalla
 from Funciones_Slide.Productividad.Metas import gestionar_metas
+from Funciones_Slide.Sistema.Misiones import ejecutar_mision
 from Funciones_Slide.Productividad.Protocolos import activar_protocolo
 from Funciones_Slide.Info.Bitacora import resumen_actividad
 from Funciones_Slide.Sistema.Modos import modo_gaming
@@ -743,6 +744,21 @@ tools = [
                 "required": ["accion"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "ejecutar_mision",
+            "description": "MISIÓN autónoma: para una ORDEN GRANDE de construir algo ('hazme un programa/script/app que...'), AIDEN lo construye con Claude Code, VERIFICA que de verdad funciona, se autocorrige si falla y reporta. Úsala cuando Marco pida CREAR software de cierta envergadura y quiera que QUEDE funcionando. (Para una app simple o un proyecto sin verificar, está crear_proyecto.)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "objetivo": {"type": "string", "description": "Qué debe lograr la misión, en lenguaje natural y con el detalle que dio Marco."},
+                    "nombre": {"type": "string", "description": "Nombre corto para la misión/carpeta. Opcional."}
+                },
+                "required": ["objetivo"]
+            }
+        }
     }
 ]
 
@@ -794,4 +810,5 @@ tools_map = {
     "ejecutar_proyecto": ejecutar_proyecto,
     "controlar_pantalla": controlar_pantalla,
     "gestionar_metas": gestionar_metas,
+    "ejecutar_mision": ejecutar_mision,
 }
