@@ -11,6 +11,7 @@ from Funciones_Slide.Sistema.Control_PC import dictar, abrir_carpeta, control_ve
 from Funciones_Slide.Sistema.Control_Pantalla import controlar_pantalla
 from Funciones_Slide.Productividad.Metas import gestionar_metas
 from Funciones_Slide.Sistema.Misiones import ejecutar_mision
+from Nucleo_Slide.Memoria_RAG import recordar_a_fondo
 from Funciones_Slide.Productividad.Protocolos import activar_protocolo
 from Funciones_Slide.Info.Bitacora import resumen_actividad
 from Funciones_Slide.Sistema.Modos import modo_gaming
@@ -759,6 +760,20 @@ tools = [
                 "required": ["objetivo"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recordar_a_fondo",
+            "description": "Busca en TODO el historial de conversaciones por SIGNIFICADO (no por palabras exactas). Úsala cuando Marco pregunte qué hablaron sobre un tema y la coincidencia pueda no usar las mismas palabras ('¿qué hemos hablado de mis estudios?', 'busca a fondo lo de mi proyecto'). Más potente que recordar_conversacion (que es por palabra clave/fecha).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "consulta": {"type": "string", "description": "El tema o pregunta a buscar por significado."}
+                },
+                "required": ["consulta"]
+            }
+        }
     }
 ]
 
@@ -811,4 +826,5 @@ tools_map = {
     "controlar_pantalla": controlar_pantalla,
     "gestionar_metas": gestionar_metas,
     "ejecutar_mision": ejecutar_mision,
+    "recordar_a_fondo": recordar_a_fondo,
 }
