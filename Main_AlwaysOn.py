@@ -59,6 +59,7 @@ from Nucleo_Slide.Compania import saludo_de_reanudacion, despedida_del_dia
 from Nucleo_Slide.Reflexion import iniciar_reflexion
 from Nucleo_Slide.Memoria_RAG import iniciar_rag
 from Funciones_Slide.Sistema.Co_Ingeniero import iniciar_co_ingeniero
+from Funciones_Slide.Sistema.Preparacion import iniciar_preparacion
 iniciar_hilos()
 
 
@@ -253,6 +254,7 @@ iniciar_seguimiento_metas(hablado_del_asistente)   # PERSIGUE tus metas (te acom
 iniciar_reflexion()                                # contempla y entiende el momento de Marco
 iniciar_rag()                                      # memoria semántica (búsqueda por significado)
 iniciar_co_ingeniero(hablado_del_asistente)        # te ofrece ayuda al verte atascado (taller)
+iniciar_preparacion(hablado_del_asistente)         # "me tomé la libertad de..." prepara tu contexto
 
 # ── Qt en el hilo principal ───────────────────────────────────────────────────
 # Las funciones que usa la ventana para conversar (event-driven, sin cambios):

@@ -39,6 +39,7 @@ from Nucleo_Slide.Compania import saludo_de_reanudacion, despedida_del_dia
 from Nucleo_Slide.Reflexion import iniciar_reflexion
 from Nucleo_Slide.Memoria_RAG import iniciar_rag
 from Funciones_Slide.Sistema.Co_Ingeniero import iniciar_co_ingeniero
+from Funciones_Slide.Sistema.Preparacion import iniciar_preparacion
 iniciar_hilos()
 
 
@@ -221,6 +222,7 @@ if verificacion == "Bienvenido Marco":
     iniciar_reflexion()                                # contempla y entiende el momento de Marco
     iniciar_rag()                                      # memoria semántica (búsqueda por significado)
     iniciar_co_ingeniero(hablado_del_asistente)        # te ofrece ayuda al verte atascado (taller)
+    iniciar_preparacion(hablado_del_asistente)         # "me tomé la libertad de..." prepara tu contexto
     ejecutar_slide(funcion_texto=Procesar_Peticion, funcion_voz=Voz)
     
     while Activado: 
