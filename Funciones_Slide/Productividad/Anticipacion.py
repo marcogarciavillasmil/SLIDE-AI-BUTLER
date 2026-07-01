@@ -188,12 +188,21 @@ def _revisar(hablar):
 
 
 def iniciar_anticipacion(hablar):
-    # Arranca el bucle de anticipación en segundo plano.
+    # Arranca el bucle de anticipación en segundo plano. TODA su voz pasa por el Vocero (respeta
+    # reunión/gaming/ausente y el presupuesto global anti-loro), como el resto de lo proactivo.
+    def _voz(texto):
+        try:
+            from Nucleo_Slide.Vocero import emitir
+            return emitir(hablar, texto, "anticipacion")
+        except Exception:
+            hablar(texto)
+            return True
+
     def _bucle():
         time.sleep(60)   # no apenas arranca; deja pasar el briefing inicial
         while True:
             try:
-                _revisar(hablar)
+                _revisar(_voz)
             except Exception:
                 pass
             time.sleep(INTERVALO)
